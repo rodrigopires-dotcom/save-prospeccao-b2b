@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAVE — Máquina de Prospecção B2B</title>
+<style>
+  :root {
+    --bg:       #0a0a0a;
+    --card:     #141414;
+    --card2:    #1c1c1c;
+    --line:     #2a2a2a;
+    --gold:     #C9A227;
+    --gold2:    #e8be3a;
+    --gold-dim: rgba(201,162,39,.12);
+    --gold-brd: rgba(201,162,39,.3);
+    --txt:      #f0f0f0;
+    --muted:    #888888;
+    --green:    #22c55e;
+    --red:      #ef4444;
+    --amber:    #f59e0b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+  body{background:var(--bg);color:var(--txt);padding:28px;min-height:100vh}
+  .wrap{max-width:1280px;margin:0 auto}
+
+  /* ── Header ── */
+  .header{display:flex;align-items:center;gap:16px;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+  .logo-img{height:48px;width:auto;object-fit:contain}
+  .logo-sub{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.8px;text-transform:uppercase}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .badge-live{background:var(--gold-dim);border:1px solid var(--gold-brd);color:var(--gold);font-size:11px;padding:5px 14px;border-radius:20px;letter-spacing:.5px}
+
+  /* ── Separator ── */
+  .sep{height:1px;background:linear-gradient(90deg,var(--gold) 0%,transparent 60%);margin:4px 0 24px}
+
+  /* ── Toolbar ── */
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+  .field{flex:1;min-width:200px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;color:var(--txt);font-size:13px;outline:none;transition:border .2s}
+  .field:focus{border-color:var(--gold)}
+  .field::placeholder{color:var(--muted)}
+  select.field{cursor:pointer}
+
+  /* ── KPI Grid ── */
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+  .kpi::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold)}
+  .kpi .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.7px}
+  .kpi .num{font-size:28px;font-weight:800;margin-top:6px;color:var(--txt)}
+  .kpi .num small{font-size:12px;color:var(--muted);font-weight:400}
+  .kpi.hot::before{background:var(--gold2)}
+  .kpi.hot .num{color:var(--gold)}
+
+  /* ── Panel ── */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
+  .section-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:16px;color:var(--txt)}
+  .section-title::before{content:'';width:3px;height:16px;background:var(--gold);border-radius:2px;flex-shrink:0}
+
+  /* ── Nicho bars ── */
+  .nicho-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .nicho-card{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .nicho-card .n-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .nicho-card .n-num{font-size:20px;font-weight:800;color:var(--txt);margin:4px 0 8px}
+  .nicho-bar{height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+  .nicho-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px}
+
+  /* ── Lead Cards Grid ── */
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
+
+  .lead-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    transition:border-color .2s, transform .15s;
+  }
+  .lead-card:hover{border-color:var(--gold-brd);transform:translateY(-2px)}
+  .lead-card.very-hot{border-color:var(--gold-brd)}
+
+  /* Card top strip by score */
+  .card-strip{height:3px;width:100%}
+  .strip-hot  {background:linear-gradient(90deg,var(--gold),var(--gold2))}
+  .strip-warm {background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+  .strip-cold {background:var(--line)}
+
+  /* Card header */
+  .card-head{padding:16px 18px 12px;display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid var(--line)}
+  .score-badge{
+    flex-shrink:0;
+    width:48px;height:48px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:20px;
+    position:relative;
+  }
+  .sb-hot {background:var(--gold-dim);color:var(--gold);border:1.5px solid var(--gold-brd)}
+  .sb-warm{background:rgba(245,158,11,.12);color:#fbbf24;border:1.5px solid rgba(245,158,11,.3)}
+  .sb-cold{background:rgba(100,100,100,.1);color:var(--muted);border:1.5px solid var(--line)}
+  .score-badge .flame{position:absolute;top:-6px;right:-6px;font-size:14px}
+
+  .card-title{flex:1;min-width:0}
+  .card-empresa{font-size:14px;font-weight:800;color:var(--txt);line-height:1.3;word-break:break-word}
+  .card-fantasia{font-size:11px;color:var(--muted);margin-top:2px}
+  .card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+
+  /* Pill tags */
+  .pill{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;display:inline-block}
+  .pill.demais{background:var(--gold-dim);color:var(--gold2);border-color:var(--gold-brd)}
+  .pill.epp   {background:rgba(201,162,39,.07);color:#d4aa50;border-color:rgba(201,162,39,.2)}
+  .pill.real  {background:rgba(34,197,94,.08);color:#4ade80;border-color:rgba(34,197,94,.2)}
+  .pill.pres  {background:rgba(100,150,255,.08);color:#93c5fd;border-color:rgba(100,150,255,.2)}
+  .pill.divida{background:rgba(239,68,68,.1);color:#fca5a5;border-color:rgba(239,68,68,.25);font-weight:600}
+
+  /* Card body sections */
+  .card-body{padding:14px 18px;display:flex;flex-direction:column;gap:12px;flex:1}
+
+  .info-row{display:flex;gap:10px;align-items:flex-start}
+  .info-icon{color:var(--gold);font-size:13px;flex-shrink:0;width:16px;text-align:center;margin-top:1px}
+  .info-content{flex:1;min-width:0}
+  .info-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+  .info-val{font-size:13px;color:var(--txt);font-weight:500;word-break:break-word}
+  .info-val.small{font-size:12px;color:var(--muted)}
+  .info-val a{color:var(--gold);text-decoration:none}
+  .info-val a:hover{color:var(--gold2)}
+
+  /* Socios list */
+  .socios-wrap{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5}
+  .socios-wrap strong{color:var(--txt);font-weight:600}
+
+  /* Divida block */
+  .divida-block{
+    background:rgba(239,68,68,.07);
+    border:1px solid rgba(239,68,68,.2);
+    border-radius:10px;
+    padding:10px 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .divida-block .divida-ico{font-size:20px}
+  .divida-block .divida-val{font-size:15px;font-weight:800;color:#fca5a5}
+  .divida-block .divida-sub{font-size:11px;color:var(--muted)}
+
+  /* Digital presence */
+  .presence-row{display:flex;gap:8px}
+  .pres-chip{
+    flex:1;display:flex;align-items:center;gap:6px;
+    background:var(--card2);border:1px solid var(--line);
+    border-radius:8px;padding:7px 10px;font-size:12px;
+  }
+  .pres-chip.ok {border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.06);color:#4ade80}
+  .pres-chip.no {color:var(--muted)}
+  .pres-chip .pico{font-size:14px}
+
+  /* Abordagem preview */
+  .abordagem-block{
+    background:var(--card2);
+    border-left:2px solid var(--gold);
+    border-radius:0 8px 8px 0;
+    padding:10px 12px;
+    font-size:12px;color:var(--muted);
+    font-style:italic;
+    line-height:1.5;
+    cursor:pointer;
+    transition:background .15s;
+    position:relative;
+  }
+  .abordagem-block:hover{background:#222}
+  .abordagem-block .abr-label{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;font-style:normal;font-weight:700;margin-bottom:4px}
+  .abordagem-block .abr-more{display:none}
+  .abordagem-block.expanded .abr-preview{display:none}
+  .abordagem-block.expanded .abr-more{display:block}
+  .copy-hint{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--gold);opacity:0;transition:opacity .2s;font-style:normal}
+  .abordagem-block:hover .copy-hint{opacity:1}
+
+  /* Card footer */
+  .card-foot{
+    padding:10px 18px;
+    border-top:1px solid var(--line);
+    display:flex;align-items:center;gap:8px;
+    flex-wrap:wrap;
+  }
+  .foot-info{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+  .foot-info span{color:var(--txt)}
+  .btn-wa{
+    margin-left:auto;
+    background:linear-gradient(135deg,#25d366,#128c7e);
+    color:#fff;border:none;border-radius:8px;
+    padding:7px 14px;font-size:12px;font-weight:700;
+    cursor:pointer;display:flex;align-items:center;gap:5px;
+    text-decoration:none;transition:opacity .2s;
+  }
+  .btn-wa:hover{opacity:.85}
+
+  /* Empty state */
+  .empty{text-align:center;padding:60px 20px;color:var(--muted)}
+  .empty .ei{font-size:40px;margin-bottom:12px}
+
+  /* Busca panel */
+  .busca-panel{background:var(--card);border:1px solid var(--gold-brd);border-radius:14px;padding:20px;margin-bottom:20px}
+  .busca-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:14px}
+  .busca-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+  .btn-buscar{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:10px;padding:12px 32px;font-weight:800;font-size:14px;cursor:pointer;letter-spacing:.3px;transition:opacity .2s;display:flex;align-items:center;gap:8px;margin-top:16px}
+  .btn-buscar:hover{opacity:.85}
+  .btn-buscar:disabled{opacity:.5;cursor:not-allowed}
+  .busca-status{font-size:12px;margin-top:10px;min-height:18px}
+
+  .page-foot{color:var(--muted);font-size:11px;text-align:center;margin-top:12px;letter-spacing:.3px}
+
+  @media(max-width:768px){
+    body{padding:14px}
+    .grid4{grid-template-columns:repeat(2,1fr)}
+    .nicho-grid{grid-template-columns:repeat(2,1fr)}
+    .cards-grid{grid-template-columns:1fr}
+    .field{min-width:0}
+    .toolbar{flex-direction:column}
+    .busca-grid{grid-template-columns:1fr}
+    .header{flex-wrap:wrap;gap:10px}
+    .header-right{width:100%;justify-content:flex-start}
+    .btn-buscar{width:100%;justify-content:center}
+    .card-foot{flex-direction:column;align-items:flex-start;gap:6px}
+    .btn-wa{margin-left:0;width:100%;justify-content:center}
+    .presence-row{flex-direction:column}
+    .kpi .num{font-size:22px}
+  }
+  @media(max-width:420px){
+    body{padding:10px}
+    .grid4{grid-template-columns:repeat(2,1fr);gap:8px}
+    .kpi{padding:12px 14px}
+    .panel{padding:14px}
+    .busca-panel{padding:14px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <img class="logo-img" src="https://adv.agilesave.com.br/wp-content/uploads/2025/01/PASTA-CRIATIVOS-96.png" alt="SAVE Inteligência Tributária" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
+    <div id="logo-fallback" style="display:none;align-items:center;gap:10px">
+      <div style="width:42px;height:42px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:#000">S</div>
+      <div>
+        <div style="font-size:20px;font-weight:800"><span style="color:var(--gold)">SAVE</span> Inteligência Tributária</div>
+        <div class="logo-sub">Máquina de Prospecção B2B</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="updated" style="font-size:11px;color:var(--muted)"></span>
+      <span class="badge-live">● Leads ativos</span>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input class="field" id="busca" placeholder="🔎 Buscar empresa, decisor, sócio...">
+    <select class="field" id="fNicho"><option value="">Nicho: todos</option></select>
+    <select class="field" id="fRegime">
+      <option value="">Regime: todos</option>
+      <option>Lucro Real/Presumido</option>
+    </select>
+    <select class="field" id="fScore">
+      <option value="">Score: todos</option>
+      <option value="9">🔥 Muito quente (9–10)</option>
+      <option value="7">✅ Quente (7–8)</option>
+      <option value="5">⏳ Morno (5–6)</option>
+    </select>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid4">
+    <div class="kpi"><div class="label">Total Prospects</div><div class="num" id="kTotal">0</div></div>
+    <div class="kpi hot"><div class="label">🔥 Muito quentes</div><div class="num" id="kHot">0 <small>score 9-10</small></div></div>
+    <div class="kpi"><div class="label">Com Dívida Ativa</div><div class="num" id="kDivida">0</div></div>
+    <div class="kpi"><div class="label">Porte DEMAIS</div><div class="num" id="kDemais">0</div></div>
+  </div>
+
+  <!-- Nichos -->
+  <div class="panel">
+    <div class="section-title">Distribuição por nicho</div>
+    <div class="nicho-grid" id="nichos"></div>
+  </div>
+
+  <!-- Cards de leads -->
+  <div class="panel">
+    <div class="section-title">
+      Prospects
+      <span id="countLbl" style="color:var(--muted);font-weight:400;font-size:12px;margin-left:8px">0 resultados</span>
+      <span id="sheet-status" style="margin-left:auto;font-size:11px;color:var(--muted);font-weight:400"></span>
+    </div>
+    <div class="cards-grid" id="cards"></div>
+    <div class="empty" id="empty" style="display:none">
+      <div class="ei">🔍</div>
+      Nenhum lead encontrado com os filtros aplicados.
+    </div>
+  </div>
+
+  <!-- Painel de Busca -->
+  <div class="busca-panel">
+    <div class="section-title">🔎 Nova Busca de Leads</div>
+    <p style="color:var(--muted);font-size:13px">Configure os parâmetros e clique em Buscar — os leads chegam automaticamente no dashboard.</p>
+    <div class="busca-grid">
+      <div>
+        <div class="busca-label">Cidade (opcional)</div>
+        <input class="field" id="bCidade" placeholder="Ex: Belo Horizonte, Uberlândia..." style="text-transform:uppercase">
+      </div>
+      <div>
+        <div class="busca-label">Estado (UF)</div>
+        <select class="field" id="bUF">
+          <option value="MG">Minas Gerais (MG)</option>
+          <option value="SP">São Paulo (SP)</option>
+          <option value="RJ">Rio de Janeiro (RJ)</option>
+          <option value="RS">Rio Grande do Sul (RS)</option>
+          <option value="PR">Paraná (PR)</option>
+          <option value="SC">Santa Catarina (SC)</option>
+          <option value="GO">Goiás (GO)</option>
+          <option value="BA">Bahia (BA)</option>
+          <option value="PE">Pernambuco (PE)</option>
+          <option value="CE">Ceará (CE)</option>
+          <option value="MT">Mato Grosso (MT)</option>
+          <option value="MS">Mato Grosso do Sul (MS)</option>
+          <option value="PA">Pará (PA)</option>
+          <option value="ES">Espírito Santo (ES)</option>
+          <option value="DF">Distrito Federal (DF)</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Nicho (CNAE)</div>
+        <select class="field" id="bCNAE">
+          <option value="4639701">Atacado Alimentos</option>
+          <option value="4711302">Supermercados</option>
+          <option value="4120400">Construção Civil</option>
+          <option value="8630503">Clínicas Médicas</option>
+          <option value="6201501">TI / Desenvolvimento</option>
+          <option value="4930202">Transportadora</option>
+          <option value="0111301">Agricultura / Agro</option>
+          <option value="4110700">Incorporadora Imóveis</option>
+          <option value="8711501">Clínicas / Home Care</option>
+          <option value="2330302">Indústria</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Porte</div>
+        <select class="field" id="bPorte">
+          <option value="05,07">EPP + DEMAIS (recomendado)</option>
+          <option value="07">Apenas DEMAIS (grandes)</option>
+          <option value="05">Apenas EPP</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Dívida Ativa</div>
+        <select class="field" id="bDivida">
+          <option value="todos">Todos os leads</option>
+          <option value="sim">Somente com dívida ativa</option>
+          <option value="nao">Somente sem dívida</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Quantidade</div>
+        <select class="field" id="bLimite">
+          <option value="10">10 leads</option>
+          <option value="20">20 leads</option>
+          <option value="30">30 leads</option>
+          <option value="50">50 leads</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-buscar" id="btnBuscar">
+      ⚡ Buscar Leads Agora
+    </button>
+    <div class="busca-status" id="buscaStatus"></div>
+  </div>
+
+  <div class="page-foot">SAVE Inteligência Tributária — Dados via Receita Federal + CNPJá · Busca sob demanda via painel</div>
+</div>
+
+<script>
+// ====== CONFIGURAÇÃO ======
+const SHEET_ID = '1Lh0MapbRVgZTahrfQSMhAPxBqhRJtsSVj1yg7vFrApQ';
+const SHEET_NAME = 'Leads';
+const API_KEY = 'AIzaSyCoCWZfX31nCagR8c0yZfIUDz7KvZScU00';
+const SHEETS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+
+// ====== DADOS MOCK — fallback se planilha não estiver acessível ======
+const LEADS_MOCK = [
+  {
+    empresa:"Adicão Distribuição Express S/A", fantasia:"Supermercados ABC",
+    decisor:"Valdemar Martins do Amaral",
+    socios_lista:"Valdemar Martins do Amaral, Thulio Fernandes Pereira, Thiago Fernandes Costa",
+    qtd_socios:3, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
+    porte:"DEMAIS", cidade:"Contagem/MG", empresa_anos:24,
+    telefone:"(37) 35129300", email:"selma.santos@superabc.com.br", site:"superabc.com.br",
+    linkedin:"", google_presente:true, google_resultados:12,
+    divida_ativa:false, divida_valor:0,
+    score:8, score_final:10,
+    abordagem:"Olá Valdemar, tudo bem? Vi que a Adicão Distribuição é referência no atacado de alimentos em MG há 24 anos. Como especialistas em recuperação tributária para empresas do Lucro Real, identificamos uma oportunidade de crédito que pode representar economia significativa para vocês. Posso apresentar uma análise sem compromisso?"
+  },
+  {
+    empresa:"Lufir Comércio e Representação Ltda", fantasia:"Arguto",
+    decisor:"Gustavo Pereira Vilela",
+    socios_lista:"Gustavo Pereira Vilela, Luciana Pereira Vilela, Fernanda Pereira Carneiro, Agenor Padua Vilela Neto",
+    qtd_socios:4, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
+    porte:"DEMAIS", cidade:"Uberlândia/MG", empresa_anos:29,
+    telefone:"(34) 32362906", email:"contabilidade@arguto.com.br", site:"arguto.com.br",
+    linkedin:"https://linkedin.com/company/arguto", google_presente:true, google_resultados:8,
+    divida_ativa:false, divida_valor:0,
+    score:9, score_final:10,
+    abordagem:"Olá Gustavo! A Arguto com 29 anos de mercado e presença consolidada no atacado é exatamente o perfil que mais se beneficia com planejamento tributário estratégico. Empresas no Lucro Real com estrutura societária sólida como a de vocês frequentemente têm créditos tributários não aproveitados. Posso mostrar como isso funciona na prática?"
+  },
+  {
+    empresa:"Stoque Mercantil Ltda", fantasia:"Stoque Mercantil",
+    decisor:"Luiz Americo Stoque",
+    socios_lista:"Luiz Americo Stoque, Santa Bela Participações Ltda",
+    qtd_socios:2, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
+    porte:"DEMAIS", cidade:"Uberlândia/MG", empresa_anos:38,
+    telefone:"(34) 32929600", email:"fiscal@stoquemercantil.com.br", site:"stoquemercantil.com.br",
+    linkedin:"", google_presente:true, google_resultados:5,
+    divida_ativa:true, divida_valor:1200000,
+    score:8, score_final:10,
+    abordagem:"Luiz Americo, a Stoque Mercantil tem 38 anos de história e R$ 1,2M em dívida ativa federal — mas isso pode ser resolvido. Nosso serviço de transação tributária negocia diretamente com a Receita Federal com descontos de até 100% em juros e multas para empresas do seu porte. Vale 15 minutos para entender as opções?"
+  },
+  {
+    empresa:"Southern Princess Comércio Exterior Ltda", fantasia:"Exprinsul",
+    decisor:"Cleber Marques de Paiva",
+    socios_lista:"Cleber Marques de Paiva",
+    qtd_socios:1, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
+    porte:"DEMAIS", cidade:"Varginha/MG", empresa_anos:50,
+    telefone:"", email:"", site:"",
+    linkedin:"", google_presente:true, google_resultados:3,
+    divida_ativa:true, divida_valor:480000,
+    score:7, score_final:9,
+    abordagem:"Cleber, 50 anos de mercado é uma trajetória impressionante. Com R$ 480 mil em dívida ativa, a Exprinsul pode se beneficiar da transação tributária federal — parcelamento especial com desconto em multas. Empresas do Lucro Real com esse histórico têm condições favoráveis. Posso apresentar as opções disponíveis agora?"
+  },
+  {
+    empresa:"Riberfoods Importadora e Distribuidora Ltda", fantasia:"Riberdoces",
+    decisor:"Fabricio de Oliveira Trombella",
+    socios_lista:"Amancio Trombella, Fabiano Trombella, Fabricio Trombella, Fabio Trombella",
+    qtd_socios:4, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
+    porte:"DEMAIS", cidade:"Uberaba/MG", empresa_anos:15,
+    telefone:"(34) 30743000", email:"financeiro@riberdoces.com.br", site:"riberdoces.com.br",
+    linkedin:"", google_presente:true, google_resultados:6,
+    divida_ativa:false, divida_valor:0,
+    score:8, score_final:9,
+    abordagem:"Fabricio, a Riberfoods com 4 sócios e 15 anos no mercado de importação e distribuição tem um cenário interessante para planejamento tributário. Empresas no Lucro Real com estrutura familiar de sócios costumam ter oportunidades de holding que reduzem carga tributária e protegem o patrimônio. Posso explicar como funciona para vocês?"
+  },
+];
+// ================================================================
+
+const $=s=>document.querySelector(s);
+
+function parseSheetRows(rows){
+  if(!rows||rows.length<2) return [];
+  const headers = rows[0].map(h=>h.trim());
+  return rows.slice(1).map(row=>{
+    const obj={};
+    headers.forEach((h,i)=>{ obj[h]=row[i]||'' });
+    return {
+      empresa:        toTitleCase(obj.empresa||''),
+      fantasia:       toTitleCase(obj.fantasia||obj.empresa||''),
+      cnpj:           obj.cnpj||'',
+      nicho:          obj.nicho||'',
+      regime:         obj.regime||'',
+      porte:          obj.porte||'',
+      cidade:         obj.cidade||'',
+      empresa_anos:   parseInt(obj.empresa_anos)||0,
+      telefone:       obj.telefone||'',
+      email:          obj.email||'',
+      decisor:        obj.decisor||'',
+      socios_lista:   obj.socios_lista||'',
+      qtd_socios:     parseInt(obj.qtd_socios)||0,
+      site:           obj.site||'',
+      divida_ativa:   obj.divida_ativa==='true'||obj.divida_ativa==='TRUE'||obj.divida_ativa==='1',
+      divida_valor:   parseFloat(obj.divida_valor)||0,
+      google_presente:obj.google_presente==='true'||obj.google_presente==='TRUE'||obj.google_presente==='1',
+      google_resultados: parseInt(obj.google_resultados)||0,
+      linkedin_url:   obj.linkedin_url||'',
+      linkedin_ok:    obj.linkedin_ok==='true'||obj.linkedin_ok==='TRUE'||obj.linkedin_ok==='1',
+      abordagem:      obj.abordagem||'',
+      score:          parseInt(obj.score)||5,
+      score_final:    parseInt(obj.score_final)||parseInt(obj.score)||5,
+      data_captura:   obj.data_captura||''
+    };
+  }).filter(l=>l.empresa);
+}
+
+async function loadLeads(){
+  const status = document.getElementById('sheet-status');
+  try {
+    status.textContent='⏳ Carregando leads...';
+    const res = await fetch(SHEETS_URL, {mode:'cors'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    const leads = parseSheetRows(data.values||[]);
+    if(!leads.length){
+      status.textContent='📋 Planilha vazia — clique em Buscar para gerar leads';
+      status.style.color='var(--muted)';
+      return [];
+    }
+    status.textContent='✅ '+leads.length+' leads carregados';
+    status.style.color='var(--green)';
+    return leads;
+  } catch(e) {
+    status.textContent='⚠️ Sem conexão com a planilha';
+    status.style.color='var(--amber)';
+    return [];
+  }
+}
+
+document.getElementById('updated').textContent = 'Atualizado: ' + new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+function toTitleCase(str){
+  if(!str) return '';
+  return str.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
+}
+function scoreClass(s){ return s>=9?'sb-hot':s>=7?'sb-warm':'sb-cold' }
+function stripClass(s){ return s>=9?'strip-hot':s>=7?'strip-warm':'strip-cold' }
+function fmtValor(v){ return v?'R$ '+Number(v).toLocaleString('pt-BR'):'' }
+
+function buildCard(l){
+  const sc = l.score_final;
+  const socios = l.socios_lista.split(',').map(s=>s.trim()).filter(Boolean);
+  const wa = l.telefone ? `https://wa.me/55${l.telefone.replace(/\D/g,'')}?text=${encodeURIComponent('Olá '+l.decisor.split(' ')[0]+', '+l.abordagem)}` : '';
+
+  return `
+  <div class="lead-card ${sc>=9?'very-hot':''}">
+    <div class="card-strip ${stripClass(sc)}"></div>
+
+    <!-- Head: score + empresa -->
+    <div class="card-head">
+      <div class="score-badge ${scoreClass(sc)}">
+        ${sc}
+        ${sc>=9?'<span class="flame">🔥</span>':''}
+      </div>
+      <div class="card-title">
+        <div class="card-empresa">${l.empresa}</div>
+        ${l.fantasia && l.fantasia!==l.empresa?`<div class="card-fantasia">${l.fantasia}</div>`:''}
+        <div class="card-meta">
+          <span class="pill ${l.porte==='DEMAIS'?'demais':'epp'}">${l.porte}</span>
+          <span class="pill ${l.regime.includes('Real')?'real':'pres'}">${l.regime.replace('Lucro ','')}</span>
+          <span class="pill">${l.nicho}</span>
+          <span class="pill">📍 ${l.cidade}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body">
+
+      <!-- Empresa info -->
+      <div class="info-row">
+        <div class="info-icon">🏢</div>
+        <div class="info-content">
+          <div class="info-label">Empresa</div>
+          <div class="info-val">${l.empresa_anos} anos de mercado${l.site?` · <a href="https://${l.site}" target="_blank">${l.site}</a>`:''}</div>
+        </div>
+      </div>
+
+      <!-- Decisor + sócios -->
+      <div class="info-row">
+        <div class="info-icon">👤</div>
+        <div class="info-content">
+          <div class="info-label">Decisor Principal</div>
+          <div class="info-val">${l.decisor}</div>
+          ${socios.length>1?`
+          <div class="socios-wrap">
+            <strong>${l.qtd_socios} sócios:</strong>
+            ${socios.join(' · ')}
+          </div>`:`<div class="info-val small">${l.qtd_socios} sócio</div>`}
+        </div>
+      </div>
+
+      <!-- Contato -->
+      ${(l.telefone||l.email)?`
+      <div class="info-row">
+        <div class="info-icon">📞</div>
+        <div class="info-content">
+          <div class="info-label">Contato</div>
+          ${l.telefone?`<div class="info-val">📱 ${l.telefone}</div>`:''}
+          ${l.email?`<div class="info-val small">✉️ ${l.email}</div>`:''}
+        </div>
+      </div>`:''}
+
+      <!-- Dívida ativa -->
+      ${l.divida_ativa?`
+      <div class="divida-block">
+        <div class="divida-ico">⚠️</div>
+        <div>
+          <div class="divida-val">${fmtValor(l.divida_valor)||'Dívida ativa'}</div>
+          <div class="divida-sub">Dívida Ativa Federal — oportunidade de transação tributária</div>
+        </div>
+      </div>`:''}
+
+      <!-- Presença digital -->
+      <div class="presence-row">
+        <div class="pres-chip ${l.google_presente?'ok':'no'}">
+          <span class="pico">🔍</span>
+          ${l.google_presente
+            ?`Google: ${l.google_resultados} result.`
+            :'Sem presença Google'}
+        </div>
+        <div class="pres-chip ${l.linkedin?'ok':'no'}">
+          <span class="pico">💼</span>
+          ${l.linkedin
+            ?`<a href="${l.linkedin}" target="_blank" style="color:inherit">LinkedIn ✓</a>`
+            :'Sem LinkedIn'}
+        </div>
+      </div>
+
+      <!-- Abordagem sugerida -->
+      ${l.abordagem?`
+      <div class="abordagem-block" onclick="this.classList.toggle('expanded');navigator.clipboard&&navigator.clipboard.writeText('${l.abordagem.replace(/'/g,"\\'")}')">
+        <div class="abr-label">💬 Abordagem sugerida pela IA — clique para copiar</div>
+        <div class="abr-preview">${l.abordagem.substring(0,100)}${l.abordagem.length>100?'...':''}</div>
+        <div class="abr-more">${l.abordagem}</div>
+      </div>`:''}
+
+    </div>
+
+    <!-- Footer -->
+    <div class="card-foot">
+      <div class="foot-info">🏆 Score IA <span>${l.score}/10</span></div>
+      <div class="foot-info">📊 Score Final <span style="color:var(--gold)">${l.score_final}/10</span></div>
+      ${wa?`<a class="btn-wa" href="${wa}" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Abordar
+      </a>`:''}
+    </div>
+  </div>`;
+}
+
+function render(list){
+  const el = $('#cards');
+  if(!list.length){
+    el.innerHTML='';
+    $('#empty').style.display='block';
+  } else {
+    $('#empty').style.display='none';
+    el.innerHTML = list.map(buildCard).join('');
+  }
+  $('#countLbl').textContent = list.length + ' resultado' + (list.length!==1?'s':'');
+}
+
+function renderStats(list){
+  $('#kTotal').textContent  = list.length;
+  $('#kHot').innerHTML      = list.filter(l=>l.score_final>=9).length + ' <small>score 9-10</small>';
+  $('#kDivida').textContent = list.filter(l=>l.divida_ativa).length;
+  $('#kDemais').textContent = list.filter(l=>l.porte==='DEMAIS').length;
+}
+
+function renderNichos(list){
+  const map={};
+  list.forEach(l=>map[l.nicho]=(map[l.nicho]||0)+1);
+  const max=Math.max(...Object.values(map),1);
+  $('#nichos').innerHTML = Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`
+    <div class="nicho-card">
+      <div class="n-label">${n}</div>
+      <div class="n-num">${c}</div>
+      <div class="nicho-bar"><i style="width:${c/max*100}%"></i></div>
+    </div>`).join('');
+}
+
+let LEADS = [];
+
+function fillFilters(leads){
+  const nichos=[...new Set(leads.map(l=>l.nicho))];
+  $('#fNicho').innerHTML='<option value="">Nicho: todos</option>'+nichos.map(n=>`<option>${n}</option>`).join('');
+}
+
+function apply(){
+  const q=$('#busca').value.toLowerCase();
+  const ni=$('#fNicho').value;
+  const rg=$('#fRegime').value;
+  const sc=parseInt($('#fScore').value)||0;
+  const f=LEADS.filter(l=>
+    (!ni||l.nicho===ni)&&
+    (!rg||l.regime===rg)&&
+    (!sc||l.score_final>=sc)&&
+    (!q||(l.empresa+l.fantasia+l.decisor+l.cidade+(l.socios_lista||'')).toLowerCase().includes(q))
+  ).sort((a,b)=>b.score_final-a.score_final);
+  render(f);renderStats(f);renderNichos(f);
+}
+
+loadLeads().then(leads=>{
+  LEADS = leads;
+  fillFilters(leads);
+  apply();
+});
+
+['busca','fNicho','fRegime','fScore'].forEach(id=>$('#'+id).addEventListener('input',apply));
+
+// ── Botão Buscar Leads ──
+const WEBHOOK_URL = 'https://rodrigopires.app.n8n.cloud/webhook/busca-b2b';
+
+$('#btnBuscar').addEventListener('click', async () => {
+  const btn    = $('#btnBuscar');
+  const status = $('#buscaStatus');
+  const params = {
+    uf:     $('#bUF').value,
+    cidade: $('#bCidade').value.trim().toUpperCase(),
+    cnae:   $('#bCNAE').value,
+    porte:  $('#bPorte').value,
+    divida: $('#bDivida').value,
+    limite: parseInt($('#bLimite').value)
+  };
+
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Buscando...';
+  status.style.color = 'var(--muted)';
+  const localStr = params.cidade ? `${params.cidade}/${params.uf}` : params.uf;
+  status.textContent = `Buscando ${params.limite} empresas de ${$('#bCNAE').options[$('#bCNAE').selectedIndex].text} em ${localStr}...`;
+
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(params)
+    });
+
+    if(!res.ok) throw new Error('Erro '+res.status);
+
+    status.style.color = 'var(--muted)';
+    const totalAntes = LEADS.length;
+    let tentativas = 0;
+    const maxTentativas = 20; // até ~5 minutos
+
+    const poll = setInterval(async () => {
+      tentativas++;
+      const dots = '.'.repeat((tentativas % 3) + 1);
+      status.textContent = `⏳ Processando${dots} (verificando planilha automaticamente)`;
+
+      const leadsNovos = await loadLeads();
+      if (leadsNovos.length > totalAntes || tentativas >= maxTentativas) {
+        clearInterval(poll);
+        LEADS = leadsNovos;
+        fillFilters(leadsNovos);
+        apply();
+        status.style.color = 'var(--green)';
+        if (leadsNovos.length > totalAntes) {
+          status.textContent = `✅ ${leadsNovos.length - totalAntes} novo(s) lead(s) adicionado(s)! Total: ${leadsNovos.length}`;
+        } else {
+          status.textContent = `⚠️ Tempo esgotado. Verifique a planilha manualmente.`;
+          status.style.color = 'var(--amber)';
+        }
+      }
+    }, 15000);
+
+  } catch(e) {
+    status.style.color = 'var(--amber)';
+    status.textContent = '⚠️ Erro ao chamar o webhook. Verifique se o workflow está ativo no n8n.';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Buscar Leads Agora';
+  }
+});
+</script>
+</body>
+</html>
