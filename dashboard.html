@@ -259,6 +259,11 @@
 
   <div class="sep"></div>
 
+  <!-- Hint -->
+  <div style="font-size:13px;color:var(--muted);margin-bottom:14px;padding:10px 14px;background:rgba(201,162,39,.06);border-left:3px solid var(--gold);border-radius:4px">
+    ⭐ Leads enriquecidos com dívida ativa + score IA — use os filtros para encontrar os melhores, marque os que já abordou e use <strong style="color:var(--gold)">⭐ Analisar</strong> para enriquecer novos leads da base.
+  </div>
+
   <!-- Status -->
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
     <span id="sheet-status" style="font-size:12px;color:var(--muted)"></span>
@@ -394,7 +399,7 @@
 // ====== CONFIGURAÇÃO ======
 const SHEET_ID = '1Lh0MapbRVgZTahrfQSMhAPxBqhRJtsSVj1yg7vFrApQ';
 const API_KEY = 'AIzaSyCoCWZfX31nCagR8c0yZfIUDz7KvZScU00';
-const SHEETS_BASE_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/base_empresas?key=${API_KEY}`;
+const SHEETS_LEADS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Leads?key=${API_KEY}`;
 const WEBHOOK_ENRIQUECER_URL = 'https://rodrigopires.app.n8n.cloud/webhook/enriquecer-lead';
 
 // ====== DADOS MOCK — fallback se planilha não estiver acessível ======
@@ -717,7 +722,7 @@ async function loadLeads(){
   try {
     statusEl.textContent='⏳ Carregando...';
     statusEl.style.color='var(--muted)';
-    const res = await fetch(SHEETS_BASE_URL, {mode:'cors'});
+    const res = await fetch(SHEETS_LEADS_URL, {mode:'cors'});
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
     const leads = parseSheetRows(data.values||[]);
