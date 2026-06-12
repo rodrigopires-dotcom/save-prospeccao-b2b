@@ -203,7 +203,7 @@
   .btn-buscar:hover{opacity:.85}
   .btn-buscar:disabled{opacity:.5;cursor:not-allowed}
   .btn-usado{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 14px;font-size:11px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
-  .btn-analisar{background:var(--accent);border:none;color:#000;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
+  .btn-analisar{background:var(--gold-dim);border:1px solid var(--gold-brd);color:var(--gold);border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
   .btn-analisar:hover{opacity:.85}
   .btn-analisar:disabled{opacity:.5;cursor:not-allowed}
   .btn-usado:hover{border-color:var(--green);color:var(--green)}
@@ -259,90 +259,150 @@
 
   <div class="sep"></div>
 
-  <!-- Hint -->
-  <div style="font-size:13px;color:var(--muted);margin-bottom:14px;padding:10px 14px;background:rgba(201,162,39,.06);border-left:3px solid var(--gold);border-radius:4px">
-    ⭐ Leads enriquecidos com dívida ativa + score IA — use os filtros para encontrar os melhores, marque os que já abordou e use <strong style="color:var(--gold)">⭐ Analisar</strong> para enriquecer novos leads da base.
-  </div>
-
-  <!-- Status -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span id="sheet-status" style="font-size:12px;color:var(--muted)"></span>
-    <button onclick="loadLeads().then(l=>{LEADS=l;fillFilters(l);apply()})" style="margin-left:auto;background:var(--gold-dim);border:1px solid var(--gold-brd);color:var(--gold);border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.3px">↻ Atualizar Base</button>
-  </div>
-
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <input class="field" id="busca" placeholder="🔎 Buscar empresa, decisor, sócio, cidade...">
-    <select class="field" id="fNicho"><option value="">Nicho: todos</option></select>
-    <select class="field" id="fRegime"><option value="">Regime: todos</option></select>
-    <select class="field" id="fPorte">
-      <option value="">Porte: todos</option>
-      <option value="EPP">EPP</option>
-      <option value="DEMAIS">DEMAIS (Grande)</option>
-      <option value="ME">ME</option>
-    </select>
-    <select class="field" id="fScore">
-      <option value="">Score IA: todos</option>
-      <option value="9">🔥 Muito quente (9–10)</option>
-      <option value="7">✅ Quente (7–8)</option>
-      <option value="5">⏳ Morno (5–6)</option>
-    </select>
-    <select class="field" id="fStatus">
-      <option value="disponivel">Disponíveis</option>
-      <option value="todos">Todos (incl. usados)</option>
-      <option value="usado">Somente usados</option>
-    </select>
+  <!-- ═══ BUSCA DE LEADS ═══ -->
+  <div class="busca-panel" style="margin-bottom:20px">
+    <div class="section-title" style="margin-bottom:14px">🎯 Buscar Leads Qualificados</div>
+    <div class="busca-grid">
+      <div>
+        <div class="busca-label">Quantidade</div>
+        <select class="field" id="fQtd">
+          <option value="10">10 leads</option>
+          <option value="20" selected>20 leads</option>
+          <option value="30">30 leads</option>
+          <option value="50">50 leads</option>
+          <option value="100">100 leads</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Estado</div>
+        <select class="field" id="fUF">
+          <option value="">Todos os estados</option>
+          <option value="MG">MG — Minas Gerais</option>
+          <option value="SP">SP — São Paulo</option>
+          <option value="RJ">RJ — Rio de Janeiro</option>
+          <option value="RS">RS — Rio Grande do Sul</option>
+          <option value="PR">PR — Paraná</option>
+          <option value="SC">SC — Santa Catarina</option>
+          <option value="GO">GO — Goiás</option>
+          <option value="BA">BA — Bahia</option>
+          <option value="PE">PE — Pernambuco</option>
+          <option value="CE">CE — Ceará</option>
+          <option value="MT">MT — Mato Grosso</option>
+          <option value="MS">MS — Mato Grosso do Sul</option>
+          <option value="PA">PA — Pará</option>
+          <option value="ES">ES — Espírito Santo</option>
+          <option value="DF">DF — Distrito Federal</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Cidade</div>
+        <input class="field" id="fCidade" placeholder="Ex: Belo Horizonte">
+      </div>
+      <div>
+        <div class="busca-label">Nicho</div>
+        <select class="field" id="fNicho"><option value="">Todos os nichos</option></select>
+      </div>
+      <div>
+        <div class="busca-label">Regime</div>
+        <select class="field" id="fRegime"><option value="">Todos os regimes</option></select>
+      </div>
+      <div>
+        <div class="busca-label">Porte</div>
+        <select class="field" id="fPorte">
+          <option value="">Todos os portes</option>
+          <option value="DEMAIS">DEMAIS — Grande</option>
+          <option value="EPP">EPP — Pequena</option>
+          <option value="ME">ME — Micro</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Dívida Ativa</div>
+        <select class="field" id="fDivida">
+          <option value="">Com ou sem dívida</option>
+          <option value="sim">✅ Com dívida ativa</option>
+          <option value="nao">❌ Sem dívida</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Score mínimo</div>
+        <select class="field" id="fScore">
+          <option value="">Qualquer score</option>
+          <option value="9">🔥 9+ Muito quente</option>
+          <option value="7">✅ 7+ Quente</option>
+          <option value="5">⏳ 5+ Morno</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Status</div>
+        <select class="field" id="fStatus">
+          <option value="disponivel">Disponíveis</option>
+          <option value="todos">Todos (incl. usados)</option>
+          <option value="usado">Já abordados</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Busca livre</div>
+        <input class="field" id="busca" placeholder="Empresa, decisor, CNPJ...">
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn-buscar" id="btnBuscarLeads">🎯 Buscar Leads</button>
+      <span id="sheet-status" style="font-size:12px;color:var(--muted)"></span>
+    </div>
   </div>
 
   <!-- KPIs -->
-  <div class="grid4">
-    <div class="kpi"><div class="label">Total Prospects</div><div class="num" id="kTotal">0</div></div>
-    <div class="kpi hot"><div class="label">🔥 Muito quentes</div><div class="num" id="kHot">0 <small>score 9-10</small></div></div>
+  <div class="grid4" id="kpiArea" style="display:none">
+    <div class="kpi"><div class="label">Encontrados</div><div class="num" id="kTotal">0</div></div>
+    <div class="kpi hot"><div class="label">🔥 Muito quentes</div><div class="num" id="kHot">0 <small>score 9+</small></div></div>
     <div class="kpi"><div class="label">Com Dívida Ativa</div><div class="num" id="kDivida">0</div></div>
     <div class="kpi"><div class="label">Porte DEMAIS</div><div class="num" id="kDemais">0</div></div>
   </div>
 
-  <!-- Cards de leads -->
-  <div class="panel">
+  <!-- Cards -->
+  <div class="panel" id="cardsArea" style="display:none">
     <div class="section-title">
-      Leads
-      <span id="countLbl" style="color:var(--muted);font-weight:400;font-size:12px;margin-left:8px">0 resultados</span>
+      Leads encontrados
+      <span id="countLbl" style="color:var(--muted);font-weight:400;font-size:12px;margin-left:8px"></span>
     </div>
     <div class="cards-grid" id="cards"></div>
     <div class="empty" id="empty" style="display:none">
       <div class="ei">🔍</div>
-      Nenhum lead encontrado com os filtros aplicados.
+      Nenhum lead encontrado com esses filtros. Tente ampliar os critérios ou carregar mais dados na base.
     </div>
   </div>
 
-  <!-- Painel de Busca -->
-  <div class="busca-panel">
-    <div class="section-title">🗃 Extrair Base de Empresas</div>
-    <p style="color:var(--muted);font-size:13px">Extrai empresas em volume para a base — sem gastar créditos de dívida ou IA. Depois, analise os melhores leads individualmente.</p>
+  <!-- Estado inicial -->
+  <div id="estadoInicial" class="panel" style="text-align:center;padding:50px 20px">
+    <div style="font-size:40px;margin-bottom:12px">🎯</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:8px">Configure os filtros e clique em Buscar</div>
+    <div style="font-size:13px;color:var(--muted)">Escolha a quantidade, estado, nicho e critérios — o sistema traz os leads mais qualificados do banco, ordenados por score.</div>
+  </div>
+
+  <!-- ═══ CARREGAR BASE ═══ -->
+  <div class="busca-panel" style="margin-top:24px">
+    <div class="section-title" style="margin-bottom:6px">🗃 Carregar Base de Dados</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Extrai empresas em volume para o banco sem custo de IA. Separe por estado e nicho para organizar melhor.</p>
     <div class="busca-grid">
       <div>
         <div class="busca-label">Estado (UF)</div>
         <select class="field" id="bUF">
-          <option value="MG">Minas Gerais (MG)</option>
-          <option value="SP">São Paulo (SP)</option>
-          <option value="RJ">Rio de Janeiro (RJ)</option>
-          <option value="RS">Rio Grande do Sul (RS)</option>
-          <option value="PR">Paraná (PR)</option>
-          <option value="SC">Santa Catarina (SC)</option>
-          <option value="GO">Goiás (GO)</option>
-          <option value="BA">Bahia (BA)</option>
-          <option value="PE">Pernambuco (PE)</option>
-          <option value="CE">Ceará (CE)</option>
-          <option value="MT">Mato Grosso (MT)</option>
-          <option value="MS">Mato Grosso do Sul (MS)</option>
-          <option value="PA">Pará (PA)</option>
-          <option value="ES">Espírito Santo (ES)</option>
-          <option value="DF">Distrito Federal (DF)</option>
+          <option value="MG">MG — Minas Gerais</option>
+          <option value="SP">SP — São Paulo</option>
+          <option value="RJ">RJ — Rio de Janeiro</option>
+          <option value="RS">RS — Rio Grande do Sul</option>
+          <option value="PR">PR — Paraná</option>
+          <option value="SC">SC — Santa Catarina</option>
+          <option value="GO">GO — Goiás</option>
+          <option value="BA">BA — Bahia</option>
+          <option value="PE">PE — Pernambuco</option>
+          <option value="CE">CE — Ceará</option>
+          <option value="MT">MT — Mato Grosso</option>
+          <option value="MS">MS — Mato Grosso do Sul</option>
+          <option value="PA">PA — Pará</option>
+          <option value="ES">ES — Espírito Santo</option>
+          <option value="DF">DF — Distrito Federal</option>
         </select>
-      </div>
-      <div>
-        <div class="busca-label">Cidade (opcional)</div>
-        <input class="field" id="bCidade" placeholder="Ex: Belo Horizonte..." style="text-transform:uppercase">
       </div>
       <div>
         <div class="busca-label">Nicho (CNAE)</div>
@@ -363,292 +423,292 @@
       <div>
         <div class="busca-label">Porte</div>
         <select class="field" id="bPorte">
-          <option value="">EPP + DEMAIS (todos)</option>
+          <option value="">EPP + DEMAIS (recomendado)</option>
           <option value="07">Apenas DEMAIS (grandes)</option>
           <option value="05">Apenas EPP</option>
         </select>
       </div>
       <div>
-        <div class="busca-label">Dívida Ativa</div>
-        <select class="field" id="bDivida">
-          <option value="">Todos os leads</option>
-          <option value="sim">Somente com dívida ativa</option>
-          <option value="nao">Somente sem dívida</option>
-        </select>
-      </div>
-      <div>
-        <div class="busca-label">Quantidade máxima</div>
+        <div class="busca-label">Quantidade</div>
         <select class="field" id="bLimite">
           <option value="100">100 empresas</option>
-          <option value="300" selected>300 empresas (recomendado)</option>
+          <option value="300" selected>300 (recomendado)</option>
           <option value="500">500 empresas</option>
           <option value="1000">1000 empresas</option>
         </select>
       </div>
     </div>
-    <button class="btn-buscar" id="btnBuscar">
-      ⚡ Extrair para Base Agora
-    </button>
+    <button class="btn-buscar" id="btnExtrair">⚡ Carregar na Base</button>
     <div class="busca-status" id="buscaStatus"></div>
   </div>
 
-  <div class="page-foot">SAVE Inteligência Tributária — Dados via Receita Federal + CNPJá · Busca sob demanda via painel</div>
+  <div class="page-foot">SAVE Inteligência Tributária — Dados via Receita Federal + CNPJá</div>
 </div>
 
 <script>
-// ====== CONFIGURAÇÃO ======
+// ====== CONFIG ======
 const SHEET_ID = '1Lh0MapbRVgZTahrfQSMhAPxBqhRJtsSVj1yg7vFrApQ';
-const API_KEY = 'AIzaSyCoCWZfX31nCagR8c0yZfIUDz7KvZScU00';
-const SHEETS_LEADS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Leads?key=${API_KEY}`;
+const API_KEY  = 'AIzaSyCoCWZfX31nCagR8c0yZfIUDz7KvZScU00';
+const SHEETS_BASE_URL   = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/base_empresas?key=${API_KEY}`;
 const WEBHOOK_ENRIQUECER_URL = 'https://rodrigopires.app.n8n.cloud/webhook/enriquecer-lead';
+const WEBHOOK_MARCAR_URL     = 'https://rodrigopires.app.n8n.cloud/webhook/marcar-lead';
+const WEBHOOK_EXTRAIR_URL    = 'https://rodrigopires.app.n8n.cloud/webhook/extrair-base';
 
-// ====== DADOS MOCK — fallback se planilha não estiver acessível ======
-const LEADS_MOCK = [
-  {
-    empresa:"Adicão Distribuição Express S/A", fantasia:"Supermercados ABC",
-    decisor:"Valdemar Martins do Amaral",
-    socios_lista:"Valdemar Martins do Amaral, Thulio Fernandes Pereira, Thiago Fernandes Costa",
-    qtd_socios:3, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
-    porte:"DEMAIS", cidade:"Contagem/MG", empresa_anos:24,
-    telefone:"(37) 35129300", email:"selma.santos@superabc.com.br", site:"superabc.com.br",
-    linkedin:"", google_presente:true, google_resultados:12,
-    divida_ativa:false, divida_valor:0,
-    score:8, score_final:10,
-    abordagem:"Olá Valdemar, tudo bem? Vi que a Adicão Distribuição é referência no atacado de alimentos em MG há 24 anos. Como especialistas em recuperação tributária para empresas do Lucro Real, identificamos uma oportunidade de crédito que pode representar economia significativa para vocês. Posso apresentar uma análise sem compromisso?"
-  },
-  {
-    empresa:"Lufir Comércio e Representação Ltda", fantasia:"Arguto",
-    decisor:"Gustavo Pereira Vilela",
-    socios_lista:"Gustavo Pereira Vilela, Luciana Pereira Vilela, Fernanda Pereira Carneiro, Agenor Padua Vilela Neto",
-    qtd_socios:4, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
-    porte:"DEMAIS", cidade:"Uberlândia/MG", empresa_anos:29,
-    telefone:"(34) 32362906", email:"contabilidade@arguto.com.br", site:"arguto.com.br",
-    linkedin:"https://linkedin.com/company/arguto", google_presente:true, google_resultados:8,
-    divida_ativa:false, divida_valor:0,
-    score:9, score_final:10,
-    abordagem:"Olá Gustavo! A Arguto com 29 anos de mercado e presença consolidada no atacado é exatamente o perfil que mais se beneficia com planejamento tributário estratégico. Empresas no Lucro Real com estrutura societária sólida como a de vocês frequentemente têm créditos tributários não aproveitados. Posso mostrar como isso funciona na prática?"
-  },
-  {
-    empresa:"Stoque Mercantil Ltda", fantasia:"Stoque Mercantil",
-    decisor:"Luiz Americo Stoque",
-    socios_lista:"Luiz Americo Stoque, Santa Bela Participações Ltda",
-    qtd_socios:2, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
-    porte:"DEMAIS", cidade:"Uberlândia/MG", empresa_anos:38,
-    telefone:"(34) 32929600", email:"fiscal@stoquemercantil.com.br", site:"stoquemercantil.com.br",
-    linkedin:"", google_presente:true, google_resultados:5,
-    divida_ativa:true, divida_valor:1200000,
-    score:8, score_final:10,
-    abordagem:"Luiz Americo, a Stoque Mercantil tem 38 anos de história e R$ 1,2M em dívida ativa federal — mas isso pode ser resolvido. Nosso serviço de transação tributária negocia diretamente com a Receita Federal com descontos de até 100% em juros e multas para empresas do seu porte. Vale 15 minutos para entender as opções?"
-  },
-  {
-    empresa:"Southern Princess Comércio Exterior Ltda", fantasia:"Exprinsul",
-    decisor:"Cleber Marques de Paiva",
-    socios_lista:"Cleber Marques de Paiva",
-    qtd_socios:1, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
-    porte:"DEMAIS", cidade:"Varginha/MG", empresa_anos:50,
-    telefone:"", email:"", site:"",
-    linkedin:"", google_presente:true, google_resultados:3,
-    divida_ativa:true, divida_valor:480000,
-    score:7, score_final:9,
-    abordagem:"Cleber, 50 anos de mercado é uma trajetória impressionante. Com R$ 480 mil em dívida ativa, a Exprinsul pode se beneficiar da transação tributária federal — parcelamento especial com desconto em multas. Empresas do Lucro Real com esse histórico têm condições favoráveis. Posso apresentar as opções disponíveis agora?"
-  },
-  {
-    empresa:"Riberfoods Importadora e Distribuidora Ltda", fantasia:"Riberdoces",
-    decisor:"Fabricio de Oliveira Trombella",
-    socios_lista:"Amancio Trombella, Fabiano Trombella, Fabricio Trombella, Fabio Trombella",
-    qtd_socios:4, nicho:"Atacado Alimentos", regime:"Lucro Real/Presumido",
-    porte:"DEMAIS", cidade:"Uberaba/MG", empresa_anos:15,
-    telefone:"(34) 30743000", email:"financeiro@riberdoces.com.br", site:"riberdoces.com.br",
-    linkedin:"", google_presente:true, google_resultados:6,
-    divida_ativa:false, divida_valor:0,
-    score:8, score_final:9,
-    abordagem:"Fabricio, a Riberfoods com 4 sócios e 15 anos no mercado de importação e distribuição tem um cenário interessante para planejamento tributário. Empresas no Lucro Real com estrutura familiar de sócios costumam ter oportunidades de holding que reduzem carga tributária e protegem o patrimônio. Posso explicar como funciona para vocês?"
-  },
-];
-// ================================================================
+const $ = s => document.querySelector(s);
 
-const $=s=>document.querySelector(s);
+let ALL_LEADS = [];   // banco completo em memória
+let LOADED    = false;
+
+// ====== SCORE LOCAL (sem IA) ======
+function calcScore(l) {
+  let pts = 0;
+  if (l.telefone)                                  pts += 2.0;
+  if (l.email)                                     pts += 1.0;
+  if (l.divida_ativa)                              pts += 2.0;
+  if (l.divida_valor >= 1000000)                   pts += 0.5;
+  else if (l.divida_valor >= 200000)               pts += 0.25;
+  if (l.porte === 'DEMAIS')                        pts += 1.5;
+  else if (l.porte === 'EPP')                      pts += 0.75;
+  if ((l.regime||'').includes('Real'))             pts += 1.0;
+  else if ((l.regime||'').includes('Presumido'))   pts += 0.5;
+  if (l.empresa_anos >= 10 && l.empresa_anos <= 40) pts += 0.5;
+  else if (l.empresa_anos > 5)                     pts += 0.25;
+  if (l.capital >= 5000000)                        pts += 0.5;
+  else if (l.capital >= 500000)                    pts += 0.25;
+  return Math.min(10, Math.round(pts * 10) / 10);
+}
+
+// ====== PARSE PLANILHA ======
+function toTitleCase(s){ return s?(s+'').toLowerCase().replace(/(?:^|\s|-)\S/g,c=>c.toUpperCase()):''; }
+function fmtValor(v){ return v?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0}):''; }
+function scoreClass(s){ return s>=9?'sb-hot':s>=7?'sb-warm':'sb-cold'; }
+function stripClass(s){ return s>=9?'strip-hot':s>=7?'strip-warm':'strip-cold'; }
 
 function parseSheetRows(rows){
   if(!rows||rows.length<2) return [];
-  // Normaliza headers: minúsculo, sem espaços/acentos simples
   const headers = rows[0].map(h=>h.trim().toLowerCase()
     .replace(/\s+/g,'_').replace(/[áàã]/g,'a').replace(/[éê]/g,'e')
-    .replace(/[íî]/g,'i').replace(/[óôõ]/g,'o').replace(/[úû]/g,'u')
-    .replace(/ç/g,'c'));
+    .replace(/[íî]/g,'i').replace(/[óôõ]/g,'o').replace(/[úû]/g,'u').replace(/ç/g,'c'));
   return rows.slice(1).map(row=>{
-    const obj={};
-    headers.forEach((h,i)=>{ obj[h]=row[i]||'' });
-    return {
-      empresa:          toTitleCase(obj.empresa||''),
-      fantasia:         toTitleCase(obj.fantasia||obj.empresa||''),
-      cnpj:             obj.cnpj||'',
-      nicho:            obj.nicho||'',
-      atividades_sec:   obj.atividades_sec||'',
-      regime:           obj.regime||'',
-      porte:            obj.porte||'',
-      cidade:           obj.cidade||'',
-      bairro:           obj.bairro||'',
-      cep:              obj.cep||'',
-      endereco:         obj.endereco||'',
-      empresa_anos:     parseInt(obj.empresa_anos)||0,
-      capital:          parseFloat(obj.capital)||0,
-      ie:               obj.ie||'',
-      telefone:         obj.telefone||'',
-      telefones:        obj.telefones||'',
-      email:            obj.email||'',
-      emails_todos:     obj.emails_todos||'',
-      decisor:          obj.decisor||'',
-      decisor_cargo:    obj.decisor_cargo||'',
-      socios_lista:     obj.socios_lista||'',
-      qtd_socios:       parseInt(obj.qtd_socios)||0,
-      site:             obj.site||'',
-      divida_ativa:     ['true','TRUE','1','sim','SIM','Sim','yes','YES'].includes(obj.divida_ativa),
-      divida_valor:     parseFloat((obj.divida_valor||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
-      google_presente:  ['true','TRUE','1','sim','SIM','Sim','yes','YES'].includes(obj.google_presente),
-      google_resultados:parseInt(obj.google_resultados)||0,
-      linkedin_url:     obj.linkedin_url||obj.linkedin||'',
-      linkedin_ok:      ['true','TRUE','1','sim','SIM','Sim','yes','YES'].includes(obj.linkedin_ok),
-      abordagem:        obj.abordagem||'',
-      score:            parseInt(obj.score)||5,
-      score_final:      parseInt(obj.score_final)||parseInt(obj.score)||5,
-      data_captura:     obj.data_captura||'',
-      status:           obj.status||'disponivel'
+    const o={};
+    headers.forEach((h,i)=>{ o[h]=row[i]||''; });
+    const bools = v => ['true','TRUE','1','sim','SIM','Sim','yes','YES'].includes(v);
+    const l = {
+      empresa:       toTitleCase(o.empresa||''),
+      fantasia:      toTitleCase(o.fantasia||o.empresa||''),
+      cnpj:          o.cnpj||'',
+      nicho:         o.nicho||'',
+      atividades_sec:o.atividades_sec||'',
+      regime:        o.regime||'',
+      porte:         o.porte||'',
+      cidade:        o.cidade||'',
+      bairro:        o.bairro||'',
+      cep:           o.cep||'',
+      endereco:      o.endereco||'',
+      empresa_anos:  parseInt(o.empresa_anos)||0,
+      capital:       parseFloat((o.capital||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
+      ie:            o.ie||'',
+      telefone:      o.telefone||'',
+      telefones:     o.telefones||'',
+      email:         o.email||'',
+      emails_todos:  o.emails_todos||'',
+      decisor:       toTitleCase(o.decisor||''),
+      decisor_cargo: o.decisor_cargo||'',
+      socios_lista:  o.socios_lista||'',
+      qtd_socios:    parseInt(o.qtd_socios)||0,
+      site:          o.site||'',
+      divida_ativa:  bools(o.divida_ativa),
+      divida_valor:  parseFloat((o.divida_valor||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
+      google_presente: bools(o.google_presente),
+      google_resultados: parseInt(o.google_resultados)||0,
+      linkedin_url:  o.linkedin_url||o.linkedin||'',
+      abordagem:     o.abordagem||'',
+      score_ia:      parseInt(o.score_final)||parseInt(o.score)||0,
+      status:        o.status||'disponivel',
+      uf:            o.uf||o.estado||'',
+      data_captura:  o.data_extracao||o.data_captura||''
     };
+    // extrai UF da cidade se não vier no campo proprio (ex: "Belo Horizonte/MG")
+    if(!l.uf && l.cidade && l.cidade.includes('/'))
+      l.uf = l.cidade.split('/').pop().trim().toUpperCase();
+    // score_final: usa IA se disponível, senão calcula local
+    l.score_final = l.score_ia || calcScore(l);
+    return l;
   }).filter(l=>l.empresa);
 }
 
-
-document.getElementById('updated').textContent = 'Atualizado: ' + new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
-
-function toTitleCase(str){
-  if(!str) return '';
-  return str.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
+// ====== CARREGAR DADOS ======
+async function carregarBase() {
+  const statusEl = $('#sheet-status');
+  statusEl.textContent = '⏳ Conectando ao banco de dados...';
+  statusEl.style.color = 'var(--muted)';
+  try {
+    const res = await fetch(SHEETS_BASE_URL, {mode:'cors'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    ALL_LEADS = parseSheetRows(data.values||[]);
+    LOADED = true;
+    // preenche filtros dinâmicos
+    const nichos = [...new Set(ALL_LEADS.map(l=>l.nicho).filter(Boolean))].sort();
+    $('#fNicho').innerHTML = '<option value="">Todos os nichos</option>' + nichos.map(n=>`<option>${n}</option>`).join('');
+    const regimes = [...new Set(ALL_LEADS.map(l=>l.regime).filter(Boolean))].sort();
+    $('#fRegime').innerHTML = '<option value="">Todos os regimes</option>' + regimes.map(r=>`<option>${r}</option>`).join('');
+    statusEl.textContent = ALL_LEADS.length
+      ? `✅ ${ALL_LEADS.length} empresas no banco — pronto para buscar`
+      : '📋 Banco vazio — use o painel abaixo para carregar dados';
+    statusEl.style.color = ALL_LEADS.length ? 'var(--green)' : 'var(--muted)';
+  } catch(e) {
+    statusEl.textContent = '⚠️ Sem conexão com o banco de dados';
+    statusEl.style.color = 'var(--amber)';
+  }
 }
-function scoreClass(s){ return s>=9?'sb-hot':s>=7?'sb-warm':'sb-cold' }
-function stripClass(s){ return s>=9?'strip-hot':s>=7?'strip-warm':'strip-cold' }
-function fmtValor(v){ return v?'R$ '+Number(v).toLocaleString('pt-BR'):'' }
 
+// ====== BUSCAR LEADS ======
+function buscarLeads() {
+  if(!LOADED){ alert('Aguarde o banco de dados carregar.'); return; }
+
+  const qtd  = parseInt($('#fQtd').value) || 20;
+  const uf   = $('#fUF').value;
+  const cid  = $('#fCidade').value.trim().toLowerCase();
+  const ni   = $('#fNicho').value;
+  const rg   = $('#fRegime').value;
+  const pt   = $('#fPorte').value;
+  const div  = $('#fDivida').value;
+  const sc   = parseInt($('#fScore').value)||0;
+  const st   = $('#fStatus').value;
+  const q    = $('#busca').value.toLowerCase();
+
+  let results = ALL_LEADS.filter(l => {
+    if(uf  && l.uf !== uf) return false;
+    if(cid && !l.cidade.toLowerCase().includes(cid))   return false;
+    if(ni  && l.nicho !== ni)                           return false;
+    if(rg  && l.regime !== rg)                          return false;
+    if(pt  && l.porte !== pt)                           return false;
+    if(div === 'sim' && !l.divida_ativa)                return false;
+    if(div === 'nao' && l.divida_ativa)                 return false;
+    if(sc  && l.score_final < sc)                       return false;
+    if(st === 'disponivel' && l.status === 'usado')     return false;
+    if(st === 'usado'      && l.status !== 'usado')     return false;
+    if(q   && !(l.empresa+l.fantasia+l.decisor+l.cidade+l.cnpj+(l.socios_lista||'')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  // ordena: dívida+score primeiro
+  results.sort((a,b) => {
+    const da = (b.divida_ativa?10:0) + b.score_final;
+    const db = (a.divida_ativa?10:0) + a.score_final;
+    return da - db;
+  });
+
+  // limita à quantidade escolhida
+  results = results.slice(0, qtd);
+
+  // mostra resultado
+  $('#estadoInicial').style.display = 'none';
+  $('#kpiArea').style.display = 'grid';
+  $('#cardsArea').style.display = 'block';
+
+  $('#kTotal').textContent  = results.length;
+  $('#kHot').innerHTML      = results.filter(l=>l.score_final>=9).length + ' <small>score 9+</small>';
+  $('#kDivida').textContent = results.filter(l=>l.divida_ativa).length;
+  $('#kDemais').textContent = results.filter(l=>l.porte==='DEMAIS').length;
+  $('#countLbl').textContent = `${results.length} de ${qtd} solicitados`;
+
+  if(!results.length){
+    $('#cards').innerHTML='';
+    $('#empty').style.display='block';
+  } else {
+    $('#empty').style.display='none';
+    $('#cards').innerHTML = results.map(buildCard).join('');
+  }
+
+  // scroll suave para os resultados
+  $('#kpiArea').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ====== BUILD CARD ======
 function buildCard(l){
   const sc = l.score_final;
-  const socios = l.socios_lista.split(',').map(s=>s.trim()).filter(Boolean);
-  const wa = l.telefone ? `https://wa.me/55${l.telefone.replace(/\D/g,'')}?text=${encodeURIComponent('Olá '+l.decisor.split(' ')[0]+', '+l.abordagem)}` : '';
-
+  const wa = l.telefone
+    ? `https://wa.me/55${l.telefone.replace(/\D/g,'')}?text=${encodeURIComponent((l.abordagem||'Olá '+l.decisor.split(' ')[0]+', tudo bem?'))}`
+    : '';
+  const linkedinHref = l.linkedin_url
+    ? (l.linkedin_url.startsWith('http')?l.linkedin_url:'https://'+l.linkedin_url)
+    : '';
   return `
   <div class="lead-card ${sc>=9?'very-hot':''}">
     <div class="card-strip ${stripClass(sc)}"></div>
-
-    <!-- Head: score + empresa -->
     <div class="card-head">
       <div class="score-badge ${scoreClass(sc)}">
-        ${sc}
-        ${sc>=9?'<span class="flame">🔥</span>':''}
+        ${sc}${sc>=9?'<span class="flame">🔥</span>':''}
       </div>
       <div class="card-title">
         <div class="card-empresa">${l.empresa}</div>
-        ${l.fantasia && l.fantasia!==l.empresa?`<div class="card-fantasia">${l.fantasia}</div>`:''}
+        ${l.fantasia&&l.fantasia!==l.empresa?`<div class="card-fantasia">${l.fantasia}</div>`:''}
         <div class="card-meta">
           <span class="pill ${l.porte==='DEMAIS'?'demais':'epp'}">${l.porte}</span>
-          <span class="pill ${l.regime.includes('Real')?'real':'pres'}">${l.regime.replace('Lucro ','')}</span>
-          <span class="pill">${l.nicho}</span>
-          <span class="pill">📍 ${l.cidade}</span>
+          <span class="pill ${(l.regime||'').includes('Real')?'real':'pres'}">${(l.regime||'').replace('Lucro ','')}</span>
+          ${l.nicho?`<span class="pill">${l.nicho}</span>`:''}
+          ${l.cidade?`<span class="pill">📍 ${l.cidade}</span>`:''}
         </div>
       </div>
     </div>
-
-    <!-- Body -->
     <div class="card-body">
-
-      <!-- Empresa info -->
       <div class="info-row">
         <div class="info-icon">🏢</div>
         <div class="info-content">
           <div class="info-label">Empresa</div>
-          <div class="info-val">${l.empresa_anos} anos de mercado${l.capital?` · Capital: <strong style="color:var(--gold)">${fmtValor(l.capital)}</strong>`:''}</div>
+          <div class="info-val">${l.empresa_anos?l.empresa_anos+' anos de mercado':''}${l.capital?' · Capital: <strong style="color:var(--gold)">'+fmtValor(l.capital)+'</strong>':''}</div>
           ${l.site?`<div class="info-val small">🌐 <a href="https://${l.site}" target="_blank">${l.site}</a></div>`:''}
-          ${l.atividades_sec?`<div class="info-val small" style="color:var(--muted)">Atividades: ${l.atividades_sec}</div>`:''}
-          ${l.ie?`<div class="info-val small" style="color:var(--muted)">IE: ${l.ie}</div>`:''}
         </div>
       </div>
-
-      <!-- Endereço -->
-      ${(l.endereco||l.bairro||l.cidade)?`
-      <div class="info-row">
-        <div class="info-icon">📍</div>
-        <div class="info-content">
-          <div class="info-label">Endereço</div>
-          ${l.endereco?`<div class="info-val">${l.endereco}</div>`:''}
-          <div class="info-val small">${[l.cidade, l.cep].filter(Boolean).join(' · ')}</div>
-        </div>
-      </div>`:''}
-
-      <!-- Decisor + sócios -->
+      ${l.decisor?`
       <div class="info-row">
         <div class="info-icon">👤</div>
         <div class="info-content">
-          <div class="info-label">Decisor Principal</div>
-          <div class="info-val">${l.decisor}${l.decisor_cargo?` <span style="color:var(--muted);font-size:11px">(${l.decisor_cargo})</span>`:''}</div>
-          ${l.qtd_socios>1?`
-          <div class="socios-wrap">
-            <strong>${l.qtd_socios} sócios:</strong> ${l.socios_lista}
-          </div>`:''}
+          <div class="info-label">Decisor</div>
+          <div class="info-val">${l.decisor}${l.decisor_cargo?' <span style="color:var(--muted);font-size:11px">('+l.decisor_cargo+')</span>':''}</div>
+          ${l.qtd_socios>1?`<div class="socios-wrap"><strong>${l.qtd_socios} sócios:</strong> ${l.socios_lista}</div>`:''}
         </div>
-      </div>
-
-      <!-- Contato -->
+      </div>`:''}
       ${(l.telefone||l.email)?`
       <div class="info-row">
         <div class="info-icon">📞</div>
         <div class="info-content">
           <div class="info-label">Contato</div>
-          ${l.telefones?l.telefones.split('|').map(t=>`<div class="info-val">📱 ${t.trim()}</div>`).join('')
-            :l.telefone?`<div class="info-val">📱 ${l.telefone}</div>`:''}
-          ${l.emails_todos?l.emails_todos.split('|').map(e=>`<div class="info-val small">✉️ ${e.trim()}</div>`).join('')
-            :l.email?`<div class="info-val small">✉️ ${l.email}</div>`:''}
+          ${(l.telefones?l.telefones.split('|'):l.telefone?[l.telefone]:[]).map(t=>`<div class="info-val">📱 ${t.trim()}</div>`).join('')}
+          ${(l.emails_todos?l.emails_todos.split('|'):l.email?[l.email]:[]).map(e=>`<div class="info-val small">✉️ ${e.trim()}</div>`).join('')}
         </div>
       </div>`:''}
-
-      <!-- Dívida ativa -->
       ${l.divida_ativa?`
       <div class="divida-block">
         <div class="divida-ico">⚠️</div>
         <div>
-          <div class="divida-val">${fmtValor(l.divida_valor)||'Dívida ativa'}</div>
+          <div class="divida-val">${fmtValor(l.divida_valor)||'Dívida Ativa confirmada'}</div>
           <div class="divida-sub">Dívida Ativa Federal — oportunidade de transação tributária</div>
         </div>
       </div>`:''}
-
-      <!-- Presença digital -->
       <div class="presence-row">
         <div class="pres-chip ${l.google_presente?'ok':'no'}">
           <span class="pico">🔍</span>
-          ${l.google_presente
-            ?`Google: ${l.google_resultados} result.`
-            :'Sem presença Google'}
+          ${l.google_presente?`Google: ${l.google_resultados} result.`:'Sem presença Google'}
         </div>
-        <div class="pres-chip ${l.linkedin_url?'ok':'no'}">
+        <div class="pres-chip ${linkedinHref?'ok':'no'}">
           <span class="pico">💼</span>
-          ${l.linkedin_url
-            ?`<a href="${l.linkedin_url.startsWith('http')?l.linkedin_url:'https://'+l.linkedin_url}" target="_blank" style="color:inherit">LinkedIn ✓</a>`
-            :'Sem LinkedIn'}
+          ${linkedinHref?`<a href="${linkedinHref}" target="_blank" style="color:inherit">LinkedIn ✓</a>`:'Sem LinkedIn'}
         </div>
       </div>
-
-      <!-- Abordagem sugerida -->
       ${l.abordagem?`
-      <div class="abordagem-block" onclick="this.classList.toggle('expanded');navigator.clipboard&&navigator.clipboard.writeText('${l.abordagem.replace(/'/g,"\\'")}')">
-        <div class="abr-label">💬 Abordagem sugerida pela IA — clique para copiar</div>
+      <div class="abordagem-block" onclick="this.classList.toggle('expanded');navigator.clipboard&&navigator.clipboard.writeText(this.dataset.txt);" data-txt="${l.abordagem.replace(/"/g,'&quot;').replace(/'/g,'&#39;')}">
+        <div class="abr-label">💬 Abordagem sugerida — clique para copiar</div>
         <div class="abr-preview">${l.abordagem.substring(0,100)}${l.abordagem.length>100?'...':''}</div>
         <div class="abr-more">${l.abordagem}</div>
       </div>`:''}
-
     </div>
-
-    <!-- Footer -->
     <div class="card-foot">
-      ${l.score_final>5?`<div class="foot-info">📊 Score <span style="color:var(--gold)">${l.score_final}/10</span></div>`:''}
-      <button class="btn-analisar" onclick="analisarLead('${l.cnpj}',this)" title="Enriquecer com dívida ativa + score IA">⭐ Analisar</button>
-      <button class="btn-usado ${l.status==='usado'?'marcado':''}" onclick="marcarUsado('${l.cnpj}',this)" title="Marcar como usado">
+      <div class="foot-info">📊 Score <span style="color:var(--gold)">${sc}/10</span>${l.score_ia?' ✨':' 🔢'}</div>
+      <button class="btn-analisar" onclick="analisarLead('${l.cnpj}',this)" title="Enriquecer com dívida ativa + score IA">⭐ Analisar IA</button>
+      <button class="btn-usado ${l.status==='usado'?'marcado':''}" onclick="marcarUsado('${l.cnpj}',this)">
         ${l.status==='usado'?'✓ Usado':'☑ Marcar usado'}
       </button>
       ${wa?`<a class="btn-wa" href="${wa}" target="_blank">
@@ -659,194 +719,78 @@ function buildCard(l){
   </div>`;
 }
 
-function render(list){
-  const el = $('#cards');
-  if(!list.length){
-    el.innerHTML='';
-    $('#empty').style.display='block';
-  } else {
-    $('#empty').style.display='none';
-    el.innerHTML = list.map(buildCard).join('');
-  }
-  $('#countLbl').textContent = list.length + ' resultado' + (list.length!==1?'s':'');
-}
-
-function renderStats(list){
-  $('#kTotal').textContent  = list.length;
-  $('#kHot').innerHTML      = list.filter(l=>l.score_final>=9).length + ' <small>score 9-10</small>';
-  $('#kDivida').textContent = list.filter(l=>l.divida_ativa).length;
-  $('#kDemais').textContent = list.filter(l=>l.porte==='DEMAIS').length;
-}
-
-function renderNichos(list){
-  const map={};
-  list.forEach(l=>map[l.nicho]=(map[l.nicho]||0)+1);
-  const max=Math.max(...Object.values(map),1);
-  $('#nichos').innerHTML = Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`
-    <div class="nicho-card">
-      <div class="n-label">${n}</div>
-      <div class="n-num">${c}</div>
-      <div class="nicho-bar"><i style="width:${c/max*100}%"></i></div>
-    </div>`).join('');
-}
-
-let LEADS = [];
-
-function fillFilters(leads){
-  const nichos=[...new Set(leads.map(l=>l.nicho).filter(Boolean))].sort();
-  $('#fNicho').innerHTML='<option value="">Nicho: todos</option>'+nichos.map(n=>`<option>${n}</option>`).join('');
-  const regimes=[...new Set(leads.map(l=>l.regime).filter(Boolean))].sort();
-  $('#fRegime').innerHTML='<option value="">Regime: todos</option>'+regimes.map(r=>`<option>${r}</option>`).join('');
-}
-
-function apply(){
-  const q=$('#busca').value.toLowerCase();
-  const ni=$('#fNicho').value;
-  const rg=$('#fRegime').value;
-  const pt=$('#fPorte').value;
-  const sc=parseInt($('#fScore').value)||0;
-  const st=$('#fStatus').value;
-  const f=LEADS.filter(l=>
-    (!ni||l.nicho===ni)&&
-    (!rg||l.regime===rg)&&
-    (!pt||l.porte===pt)&&
-    (!sc||l.score_final>=sc)&&
-    (st==='todos'||(st==='usado'?l.status==='usado':l.status!=='usado'))&&
-    (!q||(l.empresa+l.fantasia+l.decisor+l.cidade+(l.socios_lista||'')).toLowerCase().includes(q))
-  ).sort((a,b)=>(b.score_final||0)-(a.score_final||0));
-  render(f);renderStats(f);
-}
-
-async function loadLeads(){
-  const statusEl = document.getElementById('sheet-status');
-  try {
-    statusEl.textContent='⏳ Carregando...';
-    statusEl.style.color='var(--muted)';
-    const res = await fetch(SHEETS_LEADS_URL, {mode:'cors'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    const leads = parseSheetRows(data.values||[]);
-    statusEl.textContent = leads.length ? `✅ ${leads.length} empresas na base` : '📋 Base vazia — use o painel abaixo para extrair';
-    statusEl.style.color = leads.length ? 'var(--green)' : 'var(--muted)';
-    return leads;
-  } catch(e){
-    statusEl.textContent='⚠️ Sem conexão com a planilha';
-    statusEl.style.color='var(--amber)';
-    return [];
-  }
-}
-
-// Inicializa
-loadLeads().then(l=>{ LEADS=l; fillFilters(l); apply(); });
-
-['busca','fNicho','fRegime','fPorte','fScore','fStatus'].forEach(id=>$('#'+id).addEventListener('input',apply));
-
-// ── Marcar Lead Como Usado ──
-const WEBHOOK_MARCAR_URL = 'https://rodrigopires.app.n8n.cloud/webhook/marcar-lead';
+// ====== MARCAR USADO ======
 async function marcarUsado(cnpj, btn) {
   btn.disabled = true;
-  btn.textContent = '⏳';
-  const lead = LEADS.find(l=>l.cnpj===cnpj);
+  const lead = ALL_LEADS.find(l=>l.cnpj===cnpj);
   if(lead) lead.status = 'usado';
   btn.closest('.lead-card').classList.add('usado');
   btn.classList.add('marcado');
   btn.textContent = '✓ Usado';
-  apply();
   try {
     await fetch(WEBHOOK_MARCAR_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({cnpj, status:'usado'})
     });
-  } catch(e){ console.warn('Erro ao marcar usado:', e); }
+  } catch(e){}
 }
 
-// ── Analisar Lead (enriquece com dívida + IA e move para Leads) ──
+// ====== ANALISAR COM IA ======
 async function analisarLead(cnpj, btn) {
-  const lead = LEADS.find(l=>l.cnpj===cnpj);
+  const lead = ALL_LEADS.find(l=>l.cnpj===cnpj);
   if(!lead) return;
   btn.disabled = true;
   btn.textContent = '⏳ Analisando...';
   try {
     await fetch(WEBHOOK_ENRIQUECER_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(lead)
     });
-    btn.textContent = '✅ Enviado para Leads!';
+    btn.textContent = '✅ Score IA enviado!';
     btn.style.background = 'var(--green)';
-    setTimeout(()=>{ btn.textContent='⭐ Analisar Lead'; btn.disabled=false; btn.style.background='var(--accent)'; }, 4000);
+    setTimeout(()=>{ btn.textContent='⭐ Analisar IA'; btn.disabled=false; btn.style.background=''; }, 5000);
   } catch(e){
-    btn.textContent = '⚠️ Erro';
-    btn.disabled = false;
+    btn.textContent = '⚠️ Erro'; btn.disabled=false;
   }
 }
 
-// ── Botão Buscar / Extrair Base ──
-const WEBHOOK_URL = 'https://rodrigopires.app.n8n.cloud/webhook/extrair-base';
-
-$('#btnBuscar').addEventListener('click', async () => {
-  const btn    = $('#btnBuscar');
-  const status = $('#buscaStatus');
+// ====== EXTRAIR PARA BASE ======
+$('#btnExtrair').addEventListener('click', async () => {
+  const btn = $('#btnExtrair'), status = $('#buscaStatus');
   const params = {
     uf:     $('#bUF').value,
-    limite: parseInt($('#bLimite').value) || 300,
-    cidade: $('#bCidade').value.trim().toUpperCase() || '',
-    cnae:   $('#bCNAE').value || '',
-    porte:  $('#bPorte').value || '',
-    divida: $('#bDivida').value || ''
+    cnae:   $('#bCNAE').value,
+    porte:  $('#bPorte').value,
+    limite: parseInt($('#bLimite').value)||300
   };
-
-  btn.disabled = true;
-  btn.innerHTML = '⏳ Extraindo...';
-  status.style.color = 'var(--muted)';
-  const localStr = params.cidade ? `${params.cidade}/${params.uf}` : params.uf;
-  status.textContent = `Extraindo empresas de ${localStr} para a base... isso pode levar 1-2 min.`;
-
-
+  btn.disabled=true; btn.innerHTML='⏳ Carregando...';
+  status.style.color='var(--muted)';
+  status.textContent=`Extraindo empresas de ${params.uf} para a base...`;
   try {
-    const res = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+    const res = await fetch(WEBHOOK_EXTRAIR_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(params)
     });
-
-    if(!res.ok) throw new Error('Erro '+res.status);
-
-    status.style.color = 'var(--muted)';
-    const totalAntes = LEADS.length;
-    let tentativas = 0;
-    const maxTentativas = 20;
-
-    const poll = setInterval(async () => {
-      tentativas++;
-      const dots = '.'.repeat((tentativas % 3) + 1);
-      status.textContent = `⏳ Processando${dots} (verificando base automaticamente)`;
-
-      const leadsNovos = await loadLeads();
-      if (leadsNovos.length > totalAntes || tentativas >= maxTentativas) {
-        clearInterval(poll);
-        LEADS = leadsNovos;
-        fillFilters(leadsNovos);
-        apply();
-        status.style.color = 'var(--green)';
-        if (leadsNovos.length > totalAntes) {
-          status.textContent = `✅ ${leadsNovos.length - totalAntes} empresa(s) adicionada(s) à base! Total: ${leadsNovos.length}`;
-        } else {
-          status.textContent = `⚠️ Tempo esgotado. Verifique a planilha manualmente.`;
-          status.style.color = 'var(--amber)';
-        }
-      }
-    }, 15000);
-
-  } catch(e) {
-    status.style.color = 'var(--amber)';
-    status.textContent = '⚠️ Erro ao chamar o webhook. Verifique se o workflow está ativo no n8n.';
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    status.textContent='⏳ Processando... aguarde 1-2 minutos e clique em Buscar para ver os novos dados.';
+    setTimeout(async ()=>{
+      await carregarBase();
+      status.style.color='var(--green)';
+      status.textContent=`✅ Base recarregada — ${ALL_LEADS.length} empresas disponíveis.`;
+    }, 90000);
+  } catch(e){
+    status.style.color='var(--amber)';
+    status.textContent='⚠️ Erro ao chamar o webhook. Verifique se o workflow está ativo no n8n.';
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = '⚡ Buscar Leads Agora';
+    btn.disabled=false; btn.innerHTML='⚡ Carregar na Base';
   }
 });
+
+// ====== INIT ======
+document.getElementById('updated') && (document.getElementById('updated').textContent = 'Atualizado: '+new Date().toLocaleDateString('pt-BR'));
+$('#btnBuscarLeads').addEventListener('click', buscarLeads);
+$('#busca').addEventListener('keydown', e=>{ if(e.key==='Enter') buscarLeads(); });
+carregarBase();
 </script>
 </body>
 </html>
