@@ -265,6 +265,7 @@
     <button id="tabLeads" onclick="trocarAba('leads')" style="padding:8px 20px;border-radius:8px;border:2px solid var(--line);background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer">⭐ Leads Enriquecidos</button>
     <span id="sheet-status" style="margin-left:auto;font-size:12px;color:var(--muted);align-self:center"></span>
   </div>
+  <div id="tab-hint" style="font-size:12px;color:var(--muted);margin:-8px 0 12px;padding:6px 12px;background:rgba(201,162,39,.06);border-left:3px solid var(--gold);border-radius:4px"></div>
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -507,12 +508,12 @@ function parseSheetRows(rows){
       socios_lista:     obj.socios_lista||'',
       qtd_socios:       parseInt(obj.qtd_socios)||0,
       site:             obj.site||'',
-      divida_ativa:     obj.divida_ativa==='true'||obj.divida_ativa==='TRUE'||obj.divida_ativa==='1',
-      divida_valor:     parseFloat(obj.divida_valor)||0,
-      google_presente:  obj.google_presente==='true'||obj.google_presente==='TRUE'||obj.google_presente==='1',
+      divida_ativa:     ['true','TRUE','1','sim','SIM','Sim','yes','YES'].includes(obj.divida_ativa),
+      divida_valor:     parseFloat((obj.divida_valor||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
+      google_presente:  ['true','TRUE','1','sim','SIM','Sim','yes','YES'].includes(obj.google_presente),
       google_resultados:parseInt(obj.google_resultados)||0,
-      linkedin_url:     obj.linkedin_url||'',
-      linkedin_ok:      obj.linkedin_ok==='true'||obj.linkedin_ok==='TRUE'||obj.linkedin_ok==='1',
+      linkedin_url:     obj.linkedin_url||obj.linkedin||'',
+      linkedin_ok:      ['true','TRUE','1','sim','SIM','Sim','yes','YES'].includes(obj.linkedin_ok),
       abordagem:        obj.abordagem||'',
       score:            parseInt(obj.score)||5,
       score_final:      parseInt(obj.score_final)||parseInt(obj.score)||5,
@@ -630,10 +631,10 @@ function buildCard(l){
             ?`Google: ${l.google_resultados} result.`
             :'Sem presença Google'}
         </div>
-        <div class="pres-chip ${l.linkedin?'ok':'no'}">
+        <div class="pres-chip ${l.linkedin_url?'ok':'no'}">
           <span class="pico">💼</span>
-          ${l.linkedin
-            ?`<a href="${l.linkedin}" target="_blank" style="color:inherit">LinkedIn ✓</a>`
+          ${l.linkedin_url
+            ?`<a href="${l.linkedin_url.startsWith('http')?l.linkedin_url:'https://'+l.linkedin_url}" target="_blank" style="color:inherit">LinkedIn ✓</a>`
             :'Sem LinkedIn'}
         </div>
       </div>
@@ -729,17 +730,20 @@ function apply(){
 async function trocarAba(modo){
   MODO_ATUAL = modo;
   const btnBase = $('#tabBase'), btnLeads = $('#tabLeads');
+  const hint = $('#tab-hint');
   if(modo==='base'){
-    btnBase.style.background='var(--gold)'; btnBase.style.color='#0a0a0a'; btnBase.style.borderColor='var(--gold)';
-    btnLeads.style.background='transparent'; btnLeads.style.color='var(--muted)'; btnLeads.style.borderColor='var(--line)';
-    // Score filter e Status só fazem sentido em Leads
+    btnBase.style.cssText='padding:8px 20px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:#0a0a0a;font-weight:700;font-size:13px;cursor:pointer';
+    btnLeads.style.cssText='padding:8px 20px;border-radius:8px;border:2px solid var(--line);background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer';
+    $('#fScore').closest ? $('#fScore').style.display='none' : null;
     $('#fScore').style.display='none';
     $('#fStatus').style.display='none';
+    hint.textContent='📋 Empresas brutas extraídas do CNPJá — filtre e clique ⭐ Analisar Lead nas que tiver interesse para enriquecer com dívida + score IA.';
   } else {
-    btnLeads.style.background='var(--gold)'; btnLeads.style.color='#0a0a0a'; btnLeads.style.borderColor='var(--gold)';
-    btnBase.style.background='transparent'; btnBase.style.color='var(--muted)'; btnBase.style.borderColor='var(--line)';
+    btnLeads.style.cssText='padding:8px 20px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:#0a0a0a;font-weight:700;font-size:13px;cursor:pointer';
+    btnBase.style.cssText='padding:8px 20px;border-radius:8px;border:2px solid var(--line);background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer';
     $('#fScore').style.display='';
     $('#fStatus').style.display='';
+    hint.textContent='⭐ Leads já enriquecidos com dívida ativa + score IA — prontos para prospecção. Use Score e Status para priorizar.';
   }
   LEADS = await loadLeads();
   fillFilters(LEADS);
