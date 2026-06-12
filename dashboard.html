@@ -347,6 +347,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap">
       <button class="btn-buscar" id="btnBuscarLeads">🎯 Buscar Leads</button>
+      <button class="btn-buscar" id="btnVerTudo" style="background:transparent;border:1px solid var(--gold-brd);color:var(--gold)">📋 Ver tudo no banco</button>
       <span id="sheet-status" style="font-size:12px;color:var(--muted)"></span>
     </div>
   </div>
@@ -431,10 +432,10 @@
       <div>
         <div class="busca-label">Quantidade</div>
         <select class="field" id="bLimite">
-          <option value="100">100 empresas</option>
-          <option value="300" selected>300 (recomendado)</option>
+          <option value="300">300 empresas</option>
           <option value="500">500 empresas</option>
-          <option value="1000">1000 empresas</option>
+          <option value="1000" selected>1000 (máximo recomendado)</option>
+          <option value="2000">2000 empresas</option>
         </select>
       </div>
       <div>
@@ -666,6 +667,16 @@ function buscarLeads() {
   if(!results.length){
     $('#cards').innerHTML='';
     $('#empty').style.display='block';
+    $('#empty').innerHTML = `
+      <div class="ei">🔍</div>
+      <strong>Nenhum lead encontrado com esses filtros.</strong><br><br>
+      <div style="font-size:13px;color:var(--muted);max-width:480px;margin:0 auto;text-align:left">
+        <b style="color:var(--txt)">Diagnóstico:</b><br>
+        • Total no banco: <b style="color:var(--gold)">${ALL_LEADS.length} empresas</b><br>
+        • Clique em <b>"📋 Ver tudo no banco"</b> para ver o que há sem filtros<br>
+        • Se o banco estiver vazio, use o painel abaixo para <b>Carregar na Base</b> primeiro<br>
+        • Tente remover filtros de Estado, Cidade ou Score
+      </div>`;
   } else {
     $('#empty').style.display='none';
     $('#cards').innerHTML = results.map(buildCard).join('');
@@ -834,6 +845,17 @@ $('#btnExtrair').addEventListener('click', async () => {
   } finally {
     btn.disabled=false; btn.innerHTML='⚡ Carregar na Base';
   }
+});
+
+// ====== VER TUDO NO BANCO ======
+$('#btnVerTudo').addEventListener('click', () => {
+  if(!LOADED){ alert('Aguarde o banco carregar.'); return; }
+  // limpa todos os filtros
+  $('#fUF').value = ''; $('#fCidade').value = ''; $('#fNicho').value = '';
+  $('#fRegime').value = ''; $('#fPorte').value = ''; $('#fDivida').value = '';
+  $('#fScore').value = ''; $('#fStatus').value = 'todos'; $('#busca').value = '';
+  $('#fQtd').value = '100';
+  buscarLeads();
 });
 
 // ====== INIT ======
