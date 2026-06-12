@@ -456,30 +456,39 @@ function parseSheetRows(rows){
     const obj={};
     headers.forEach((h,i)=>{ obj[h]=row[i]||'' });
     return {
-      empresa:        toTitleCase(obj.empresa||''),
-      fantasia:       toTitleCase(obj.fantasia||obj.empresa||''),
-      cnpj:           obj.cnpj||'',
-      nicho:          obj.nicho||'',
-      regime:         obj.regime||'',
-      porte:          obj.porte||'',
-      cidade:         obj.cidade||'',
-      empresa_anos:   parseInt(obj.empresa_anos)||0,
-      telefone:       obj.telefone||'',
-      email:          obj.email||'',
-      decisor:        obj.decisor||'',
-      socios_lista:   obj.socios_lista||'',
-      qtd_socios:     parseInt(obj.qtd_socios)||0,
-      site:           obj.site||'',
-      divida_ativa:   obj.divida_ativa==='true'||obj.divida_ativa==='TRUE'||obj.divida_ativa==='1',
-      divida_valor:   parseFloat(obj.divida_valor)||0,
-      google_presente:obj.google_presente==='true'||obj.google_presente==='TRUE'||obj.google_presente==='1',
-      google_resultados: parseInt(obj.google_resultados)||0,
-      linkedin_url:   obj.linkedin_url||'',
-      linkedin_ok:    obj.linkedin_ok==='true'||obj.linkedin_ok==='TRUE'||obj.linkedin_ok==='1',
-      abordagem:      obj.abordagem||'',
-      score:          parseInt(obj.score)||5,
-      score_final:    parseInt(obj.score_final)||parseInt(obj.score)||5,
-      data_captura:   obj.data_captura||''
+      empresa:          toTitleCase(obj.empresa||''),
+      fantasia:         toTitleCase(obj.fantasia||obj.empresa||''),
+      cnpj:             obj.cnpj||'',
+      nicho:            obj.nicho||'',
+      atividades_sec:   obj.atividades_sec||'',
+      regime:           obj.regime||'',
+      porte:            obj.porte||'',
+      cidade:           obj.cidade||'',
+      bairro:           obj.bairro||'',
+      cep:              obj.cep||'',
+      endereco:         obj.endereco||'',
+      empresa_anos:     parseInt(obj.empresa_anos)||0,
+      capital:          parseFloat(obj.capital)||0,
+      ie:               obj.ie||'',
+      telefone:         obj.telefone||'',
+      telefones:        obj.telefones||'',
+      email:            obj.email||'',
+      emails_todos:     obj.emails_todos||'',
+      decisor:          obj.decisor||'',
+      decisor_cargo:    obj.decisor_cargo||'',
+      socios_lista:     obj.socios_lista||'',
+      qtd_socios:       parseInt(obj.qtd_socios)||0,
+      site:             obj.site||'',
+      divida_ativa:     obj.divida_ativa==='true'||obj.divida_ativa==='TRUE'||obj.divida_ativa==='1',
+      divida_valor:     parseFloat(obj.divida_valor)||0,
+      google_presente:  obj.google_presente==='true'||obj.google_presente==='TRUE'||obj.google_presente==='1',
+      google_resultados:parseInt(obj.google_resultados)||0,
+      linkedin_url:     obj.linkedin_url||'',
+      linkedin_ok:      obj.linkedin_ok==='true'||obj.linkedin_ok==='TRUE'||obj.linkedin_ok==='1',
+      abordagem:        obj.abordagem||'',
+      score:            parseInt(obj.score)||5,
+      score_final:      parseInt(obj.score_final)||parseInt(obj.score)||5,
+      data_captura:     obj.data_captura||''
     };
   }).filter(l=>l.empresa);
 }
@@ -552,21 +561,34 @@ function buildCard(l){
         <div class="info-icon">🏢</div>
         <div class="info-content">
           <div class="info-label">Empresa</div>
-          <div class="info-val">${l.empresa_anos} anos de mercado${l.site?` · <a href="https://${l.site}" target="_blank">${l.site}</a>`:''}</div>
+          <div class="info-val">${l.empresa_anos} anos de mercado${l.capital?` · Capital: <strong style="color:var(--gold)">${fmtValor(l.capital)}</strong>`:''}</div>
+          ${l.site?`<div class="info-val small">🌐 <a href="https://${l.site}" target="_blank">${l.site}</a></div>`:''}
+          ${l.atividades_sec?`<div class="info-val small" style="color:var(--muted)">Atividades: ${l.atividades_sec}</div>`:''}
+          ${l.ie?`<div class="info-val small" style="color:var(--muted)">IE: ${l.ie}</div>`:''}
         </div>
       </div>
+
+      <!-- Endereço -->
+      ${(l.endereco||l.bairro||l.cidade)?`
+      <div class="info-row">
+        <div class="info-icon">📍</div>
+        <div class="info-content">
+          <div class="info-label">Endereço</div>
+          ${l.endereco?`<div class="info-val">${l.endereco}</div>`:''}
+          <div class="info-val small">${[l.cidade, l.cep].filter(Boolean).join(' · ')}</div>
+        </div>
+      </div>`:''}
 
       <!-- Decisor + sócios -->
       <div class="info-row">
         <div class="info-icon">👤</div>
         <div class="info-content">
           <div class="info-label">Decisor Principal</div>
-          <div class="info-val">${l.decisor}</div>
-          ${socios.length>1?`
+          <div class="info-val">${l.decisor}${l.decisor_cargo?` <span style="color:var(--muted);font-size:11px">(${l.decisor_cargo})</span>`:''}</div>
+          ${l.qtd_socios>1?`
           <div class="socios-wrap">
-            <strong>${l.qtd_socios} sócios:</strong>
-            ${socios.join(' · ')}
-          </div>`:`<div class="info-val small">${l.qtd_socios} sócio</div>`}
+            <strong>${l.qtd_socios} sócios:</strong> ${l.socios_lista}
+          </div>`:''}
         </div>
       </div>
 
@@ -576,8 +598,10 @@ function buildCard(l){
         <div class="info-icon">📞</div>
         <div class="info-content">
           <div class="info-label">Contato</div>
-          ${l.telefone?`<div class="info-val">📱 ${l.telefone}</div>`:''}
-          ${l.email?`<div class="info-val small">✉️ ${l.email}</div>`:''}
+          ${l.telefones?l.telefones.split('|').map(t=>`<div class="info-val">📱 ${t.trim()}</div>`).join('')
+            :l.telefone?`<div class="info-val">📱 ${l.telefone}</div>`:''}
+          ${l.emails_todos?l.emails_todos.split('|').map(e=>`<div class="info-val small">✉️ ${e.trim()}</div>`).join('')
+            :l.email?`<div class="info-val small">✉️ ${l.email}</div>`:''}
         </div>
       </div>`:''}
 
