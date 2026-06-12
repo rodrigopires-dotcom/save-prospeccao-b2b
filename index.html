@@ -321,7 +321,7 @@
   <div class="busca-panel">
     <div class="section-title">🗃 Extrair Base de Empresas</div>
     <p style="color:var(--muted);font-size:13px">Extrai empresas em volume para a base — sem gastar créditos de dívida ou IA. Depois, analise os melhores leads individualmente.</p>
-    <div class="busca-grid" style="grid-template-columns:1fr 1fr">
+    <div class="busca-grid">
       <div>
         <div class="busca-label">Estado (UF)</div>
         <select class="field" id="bUF">
@@ -340,6 +340,42 @@
           <option value="PA">Pará (PA)</option>
           <option value="ES">Espírito Santo (ES)</option>
           <option value="DF">Distrito Federal (DF)</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Cidade (opcional)</div>
+        <input class="field" id="bCidade" placeholder="Ex: Belo Horizonte..." style="text-transform:uppercase">
+      </div>
+      <div>
+        <div class="busca-label">Nicho (CNAE)</div>
+        <select class="field" id="bCNAE">
+          <option value="">Todos os nichos</option>
+          <option value="4639701">Atacado Alimentos</option>
+          <option value="4711302">Supermercados</option>
+          <option value="4120400">Construção Civil</option>
+          <option value="8630503">Clínicas Médicas</option>
+          <option value="6201501">TI / Desenvolvimento</option>
+          <option value="4930202">Transportadora</option>
+          <option value="0111301">Agricultura / Agro</option>
+          <option value="4110700">Incorporadora Imóveis</option>
+          <option value="8711501">Clínicas / Home Care</option>
+          <option value="2330302">Indústria</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Porte</div>
+        <select class="field" id="bPorte">
+          <option value="">EPP + DEMAIS (todos)</option>
+          <option value="07">Apenas DEMAIS (grandes)</option>
+          <option value="05">Apenas EPP</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Dívida Ativa</div>
+        <select class="field" id="bDivida">
+          <option value="">Todos os leads</option>
+          <option value="sim">Somente com dívida ativa</option>
+          <option value="nao">Somente sem dívida</option>
         </select>
       </div>
       <div>
@@ -785,13 +821,18 @@ $('#btnBuscar').addEventListener('click', async () => {
   const status = $('#buscaStatus');
   const params = {
     uf:     $('#bUF').value,
-    limite: parseInt($('#bLimite').value) || 300
+    limite: parseInt($('#bLimite').value) || 300,
+    cidade: $('#bCidade').value.trim().toUpperCase() || '',
+    cnae:   $('#bCNAE').value || '',
+    porte:  $('#bPorte').value || '',
+    divida: $('#bDivida').value || ''
   };
 
   btn.disabled = true;
   btn.innerHTML = '⏳ Extraindo...';
   status.style.color = 'var(--muted)';
-  status.textContent = `Extraindo empresas de ${params.uf} para a base... isso pode levar 1-2 min.`;
+  const localStr = params.cidade ? `${params.cidade}/${params.uf}` : params.uf;
+  status.textContent = `Extraindo empresas de ${localStr} para a base... isso pode levar 1-2 min.`;
 
   // Troca para aba base automaticamente
   if(MODO_ATUAL!=='base') await trocarAba('base');
