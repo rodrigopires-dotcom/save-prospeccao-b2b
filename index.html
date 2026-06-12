@@ -461,7 +461,11 @@ const $=s=>document.querySelector(s);
 
 function parseSheetRows(rows){
   if(!rows||rows.length<2) return [];
-  const headers = rows[0].map(h=>h.trim());
+  // Normaliza headers: minúsculo, sem espaços/acentos simples
+  const headers = rows[0].map(h=>h.trim().toLowerCase()
+    .replace(/\s+/g,'_').replace(/[áàã]/g,'a').replace(/[éê]/g,'e')
+    .replace(/[íî]/g,'i').replace(/[óôõ]/g,'o').replace(/[úû]/g,'u')
+    .replace(/ç/g,'c'));
   return rows.slice(1).map(row=>{
     const obj={};
     headers.forEach((h,i)=>{ obj[h]=row[i]||'' });
@@ -498,7 +502,8 @@ function parseSheetRows(rows){
       abordagem:        obj.abordagem||'',
       score:            parseInt(obj.score)||5,
       score_final:      parseInt(obj.score_final)||parseInt(obj.score)||5,
-      data_captura:     obj.data_captura||''
+      data_captura:     obj.data_captura||'',
+      status:           obj.status||'disponivel'
     };
   }).filter(l=>l.empresa);
 }
@@ -510,6 +515,8 @@ async function loadLeads(){
     const res = await fetch(SHEETS_URL, {mode:'cors'});
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
+    console.log('[DEBUG] Colunas da planilha:', (data.values||[[]])[0]);
+    console.log('[DEBUG] Total de linhas:', (data.values||[]).length);
     const leads = parseSheetRows(data.values||[]);
     if(!leads.length){
       status.textContent='📋 Planilha vazia — clique em Buscar para gerar leads';
