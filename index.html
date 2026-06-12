@@ -437,6 +437,16 @@
           <option value="1000">1000 empresas</option>
         </select>
       </div>
+      <div>
+        <div class="busca-label">Prioridade</div>
+        <select class="field" id="bPrioridade">
+          <option value="divida">🔥 Somente com Dívida Ativa</option>
+          <option value="todas">Todas as empresas</option>
+        </select>
+      </div>
+    </div>
+    <div style="background:rgba(201,162,39,.08);border:1px solid var(--gold-brd);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted);margin-top:14px">
+      💡 <strong style="color:var(--gold)">Dica de score alto:</strong> empresas com Dívida Ativa + Porte DEMAIS + Lucro Real somam até 6,5 pts sozinhas. Selecione "Somente com Dívida Ativa" para trazer leads com maior potencial de score 7+.
     </div>
     <button class="btn-buscar" id="btnExtrair">⚡ Carregar na Base</button>
     <div class="busca-status" id="buscaStatus"></div>
@@ -526,12 +536,23 @@ function parseSheetRows(rows){
       abordagem:     o.abordagem||o.texto_abordagem||'',
       score_ia:      parseInt(o.score_final)||parseInt(o.score)||0,
       status:        o.status||'disponivel',
-      uf:            o.uf||o.estado||'',
+      uf:            o.uf||o.estado||o.state||o.address_state||o.municipio_uf||o.sigla_uf||'',
       data_captura:  o.data_extracao||o.data_captura||''
     };
-    // extrai UF da cidade se não vier no campo proprio (ex: "Belo Horizonte/MG")
-    if(!l.uf && l.cidade && l.cidade.includes('/'))
-      l.uf = l.cidade.split('/').pop().trim().toUpperCase();
+    // extrai UF da cidade se não vier em campo próprio (suporta "Belo Horizonte/MG" ou "MG/Belo Horizonte")
+    if(!l.uf && l.cidade) {
+      const parts = l.cidade.split('/');
+      if(parts.length >= 2) {
+        // testa qual parte é a sigla (2 letras maiúsculas)
+        const sigla = parts.map(p=>p.trim()).find(p=>/^[A-Z]{2}$/.test(p.toUpperCase()));
+        if(sigla) l.uf = sigla.toUpperCase();
+      }
+    }
+    // fallback: procura qualquer campo de 2 letras que pareça UF
+    if(!l.uf) {
+      const candidatos = ['uf','estado','state','address_state','municipio_uf','sigla','sigla_uf','uf_empresa'];
+      for(const c of candidatos) { if(o[c]&&/^[A-Z]{2}$/i.test(o[c].trim())){ l.uf=o[c].trim().toUpperCase(); break; } }
+    }
     // gera abordagem padrão se não vier da planilha
     if(!l.abordagem) {
       const nome = l.decisor ? l.decisor.split(' ')[0] : 'tudo bem';
@@ -576,7 +597,8 @@ function buscarLeads() {
 
   const qtd  = parseInt($('#fQtd').value) || 20;
   const uf   = $('#fUF').value;
-  const cid  = $('#fCidade').value.trim().toLowerCase();
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const cid  = norm($('#fCidade').value.trim());
   const ni   = $('#fNicho').value;
   const rg   = $('#fRegime').value;
   const pt   = $('#fPorte').value;
@@ -587,7 +609,7 @@ function buscarLeads() {
 
   let results = ALL_LEADS.filter(l => {
     if(uf  && l.uf !== uf) return false;
-    if(cid && !l.cidade.toLowerCase().includes(cid))   return false;
+    if(cid && !norm(l.cidade).includes(cid))            return false;
     if(ni  && l.nicho !== ni)                           return false;
     if(rg  && l.regime !== rg)                          return false;
     if(pt  && l.porte !== pt)                           return false;
@@ -620,6 +642,26 @@ function buscarLeads() {
   $('#kDivida').textContent = results.filter(l=>l.divida_ativa).length;
   $('#kDemais').textContent = results.filter(l=>l.porte==='DEMAIS').length;
   $('#countLbl').textContent = `${results.length} de ${qtd} solicitados`;
+
+  // distribuição de scores
+  const s9 = results.filter(l=>l.score_final>=9).length;
+  const s7 = results.filter(l=>l.score_final>=7&&l.score_final<9).length;
+  const s5 = results.filter(l=>l.score_final>=5&&l.score_final<7).length;
+  const s0 = results.filter(l=>l.score_final<5).length;
+  const totalBase = ALL_LEADS.length;
+  const totalFiltro = ALL_LEADS.filter(l=>{
+    if($('#fUF').value && l.uf !== $('#fUF').value) return false;
+    if(cid && !norm(l.cidade).includes(cid)) return false;
+    if($('#fNicho').value && l.nicho !== $('#fNicho').value) return false;
+    if($('#fPorte').value && l.porte !== $('#fPorte').value) return false;
+    return true;
+  }).length;
+  document.getElementById('scoreDist') && document.getElementById('scoreDist').remove();
+  const dist = document.createElement('div');
+  dist.id = 'scoreDist';
+  dist.style.cssText = 'font-size:12px;color:var(--muted);margin:8px 0 0;display:flex;gap:14px;flex-wrap:wrap;align-items:center';
+  dist.innerHTML = `<span>No banco: <strong style="color:var(--txt)">${totalBase}</strong> empresas</span><span style="color:var(--line)">|</span><span>Com seus filtros: <strong style="color:var(--txt)">${totalFiltro}</strong></span><span style="color:var(--line)">|</span><span>🔥 Score 9+: <strong style="color:var(--gold)">${s9}</strong></span><span>✅ 7-8: <strong style="color:#4ade80">${s7}</strong></span><span>⏳ 5-6: <strong>${s5}</strong></span><span>❄️ &lt;5: <strong>${s0}</strong></span>`;
+  $('#kpiArea').after(dist);
 
   if(!results.length){
     $('#cards').innerHTML='';
@@ -765,10 +807,11 @@ async function analisarLead(cnpj, btn) {
 $('#btnExtrair').addEventListener('click', async () => {
   const btn = $('#btnExtrair'), status = $('#buscaStatus');
   const params = {
-    uf:     $('#bUF').value,
-    cnae:   $('#bCNAE').value,
-    porte:  $('#bPorte').value,
-    limite: parseInt($('#bLimite').value)||300
+    uf:           $('#bUF').value,
+    cnae:         $('#bCNAE').value,
+    porte:        $('#bPorte').value,
+    limite:       parseInt($('#bLimite').value)||300,
+    divida_ativa: $('#bPrioridade').value === 'divida'
   };
   btn.disabled=true; btn.innerHTML='⏳ Carregando...';
   status.style.color='var(--muted)';
