@@ -259,9 +259,8 @@
 
   <div class="sep"></div>
 
-  <!-- Status + Toolbar -->
+  <!-- Status -->
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:13px;font-weight:700;color:var(--gold)">🗃 Base de Empresas</span>
     <span id="sheet-status" style="font-size:12px;color:var(--muted)"></span>
     <button onclick="loadLeads().then(l=>{LEADS=l;fillFilters(l);apply()})" style="margin-left:auto;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer">↻ Atualizar</button>
   </div>
@@ -298,16 +297,10 @@
     <div class="kpi"><div class="label">Porte DEMAIS</div><div class="num" id="kDemais">0</div></div>
   </div>
 
-  <!-- Nichos -->
-  <div class="panel">
-    <div class="section-title">Distribuição por nicho</div>
-    <div class="nicho-grid" id="nichos"></div>
-  </div>
-
   <!-- Cards de leads -->
   <div class="panel">
     <div class="section-title">
-      Prospects
+      Leads
       <span id="countLbl" style="color:var(--muted);font-weight:400;font-size:12px;margin-left:8px">0 resultados</span>
     </div>
     <div class="cards-grid" id="cards"></div>
@@ -716,7 +709,7 @@ function apply(){
     (st==='todos'||(st==='usado'?l.status==='usado':l.status!=='usado'))&&
     (!q||(l.empresa+l.fantasia+l.decisor+l.cidade+(l.socios_lista||'')).toLowerCase().includes(q))
   ).sort((a,b)=>(b.score_final||0)-(a.score_final||0));
-  render(f);renderStats(f);renderNichos(f);
+  render(f);renderStats(f);
 }
 
 async function loadLeads(){
