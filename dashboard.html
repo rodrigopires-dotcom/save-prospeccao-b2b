@@ -261,7 +261,7 @@
 
   <!-- Abas Base / Leads -->
   <div style="display:flex;gap:8px;margin-bottom:14px">
-    <button id="tabBase" onclick="trocarAba('base')" style="padding:8px 20px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:#000;font-weight:700;font-size:13px;cursor:pointer">🗃 Base de Empresas</button>
+    <button id="tabBase" onclick="trocarAba('base')" style="padding:8px 20px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:#0a0a0a;font-weight:700;font-size:13px;cursor:pointer">🗃 Base de Empresas</button>
     <button id="tabLeads" onclick="trocarAba('leads')" style="padding:8px 20px;border-radius:8px;border:2px solid var(--line);background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer">⭐ Leads Enriquecidos</button>
     <span id="sheet-status" style="margin-left:auto;font-size:12px;color:var(--muted);align-self:center"></span>
   </div>
@@ -730,13 +730,13 @@ async function trocarAba(modo){
   MODO_ATUAL = modo;
   const btnBase = $('#tabBase'), btnLeads = $('#tabLeads');
   if(modo==='base'){
-    btnBase.style.background='var(--accent)'; btnBase.style.color='#000'; btnBase.style.borderColor='var(--accent)';
+    btnBase.style.background='var(--gold)'; btnBase.style.color='#0a0a0a'; btnBase.style.borderColor='var(--gold)';
     btnLeads.style.background='transparent'; btnLeads.style.color='var(--muted)'; btnLeads.style.borderColor='var(--line)';
     // Score filter e Status só fazem sentido em Leads
     $('#fScore').style.display='none';
     $('#fStatus').style.display='none';
   } else {
-    btnLeads.style.background='var(--accent)'; btnLeads.style.color='#000'; btnLeads.style.borderColor='var(--accent)';
+    btnLeads.style.background='var(--gold)'; btnLeads.style.color='#0a0a0a'; btnLeads.style.borderColor='var(--gold)';
     btnBase.style.background='transparent'; btnBase.style.color='var(--muted)'; btnBase.style.borderColor='var(--line)';
     $('#fScore').style.display='';
     $('#fStatus').style.display='';
