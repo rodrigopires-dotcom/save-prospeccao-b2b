@@ -700,8 +700,10 @@ function renderNichos(list){
 let LEADS = [];
 
 function fillFilters(leads){
-  const nichos=[...new Set(leads.map(l=>l.nicho))];
+  const nichos=[...new Set(leads.map(l=>l.nicho).filter(Boolean))].sort();
   $('#fNicho').innerHTML='<option value="">Nicho: todos</option>'+nichos.map(n=>`<option>${n}</option>`).join('');
+  const regimes=[...new Set(leads.map(l=>l.regime).filter(Boolean))].sort();
+  $('#fRegime').innerHTML='<option value="">Regime: todos</option>'+regimes.map(r=>`<option>${r}</option>`).join('');
 }
 
 function apply(){
