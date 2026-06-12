@@ -850,11 +850,19 @@ $('#btnExtrair').addEventListener('click', async () => {
 // ====== VER TUDO NO BANCO ======
 $('#btnVerTudo').addEventListener('click', () => {
   if(!LOADED){ alert('Aguarde o banco carregar.'); return; }
-  // limpa todos os filtros
   $('#fUF').value = ''; $('#fCidade').value = ''; $('#fNicho').value = '';
   $('#fRegime').value = ''; $('#fPorte').value = ''; $('#fDivida').value = '';
   $('#fScore').value = ''; $('#fStatus').value = 'todos'; $('#busca').value = '';
-  $('#fQtd').value = '100';
+  // mostra TUDO (sem limite de quantidade)
+  const total = ALL_LEADS.length;
+  const opt = [...$('#fQtd').options].find(o => parseInt(o.value) >= total);
+  if(opt) $('#fQtd').value = opt.value;
+  else {
+    const o = document.createElement('option');
+    o.value = total; o.textContent = `${total} (todos)`;
+    $('#fQtd').appendChild(o);
+    $('#fQtd').value = total;
+  }
   buscarLeads();
 });
 
