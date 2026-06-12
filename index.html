@@ -481,6 +481,7 @@ function calcScore(l) {
 // ====== PARSE PLANILHA ======
 function toTitleCase(s){ return s?(s+'').toLowerCase().replace(/(?:^|\s|-)\S/g,c=>c.toUpperCase()):''; }
 function fmtValor(v){ return v?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0}):''; }
+function fmtValorSimples(v){ if(!v) return ''; if(v>=1000000) return 'R$ '+(v/1000000).toFixed(1).replace('.',',')+'M'; if(v>=1000) return 'R$ '+(v/1000).toFixed(0)+'mil'; return fmtValor(v); }
 function scoreClass(s){ return s>=9?'sb-hot':s>=7?'sb-warm':'sb-cold'; }
 function stripClass(s){ return s>=9?'strip-hot':s>=7?'strip-warm':'strip-cold'; }
 
@@ -522,7 +523,7 @@ function parseSheetRows(rows){
       google_presente: bools(o.google_presente),
       google_resultados: parseInt(o.google_resultados)||0,
       linkedin_url:  o.linkedin_url||o.linkedin||'',
-      abordagem:     o.abordagem||'',
+      abordagem:     o.abordagem||o.texto_abordagem||'',
       score_ia:      parseInt(o.score_final)||parseInt(o.score)||0,
       status:        o.status||'disponivel',
       uf:            o.uf||o.estado||'',
@@ -531,6 +532,12 @@ function parseSheetRows(rows){
     // extrai UF da cidade se não vier no campo proprio (ex: "Belo Horizonte/MG")
     if(!l.uf && l.cidade && l.cidade.includes('/'))
       l.uf = l.cidade.split('/').pop().trim().toUpperCase();
+    // gera abordagem padrão se não vier da planilha
+    if(!l.abordagem) {
+      const nome = l.decisor ? l.decisor.split(' ')[0] : 'tudo bem';
+      const divida = l.divida_ativa ? ` Identificamos também uma pendência junto à Receita Federal${l.divida_valor?' no valor de '+fmtValorSimples(l.divida_valor):''} — podemos ajudar com uma estratégia de regularização.` : '';
+      l.abordagem = `Olá ${nome}! Sou da SAVE Inteligência Tributária. Analisamos o perfil fiscal da ${l.empresa} e identificamos oportunidades de redução de carga tributária para empresas do seu porte no regime ${(l.regime||'').replace('Lucro ','')}.${divida} Posso apresentar um diagnóstico gratuito?`;
+    }
     // score_final: usa IA se disponível, senão calcula local
     l.score_final = l.score_ia || calcScore(l);
     return l;
