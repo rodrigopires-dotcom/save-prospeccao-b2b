@@ -259,17 +259,16 @@
 
   <div class="sep"></div>
 
-  <!-- Abas Base / Leads -->
-  <div style="display:flex;gap:8px;margin-bottom:14px">
-    <button id="tabBase" onclick="trocarAba('base')" style="padding:8px 20px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:#0a0a0a;font-weight:700;font-size:13px;cursor:pointer">🗃 Base de Empresas</button>
-    <button id="tabLeads" onclick="trocarAba('leads')" style="padding:8px 20px;border-radius:8px;border:2px solid var(--line);background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer">⭐ Leads Enriquecidos</button>
-    <span id="sheet-status" style="margin-left:auto;font-size:12px;color:var(--muted);align-self:center"></span>
+  <!-- Status + Toolbar -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="font-size:13px;font-weight:700;color:var(--gold)">🗃 Base de Empresas</span>
+    <span id="sheet-status" style="font-size:12px;color:var(--muted)"></span>
+    <button onclick="loadLeads().then(l=>{LEADS=l;fillFilters(l);apply()})" style="margin-left:auto;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer">↻ Atualizar</button>
   </div>
-  <div id="tab-hint" style="font-size:12px;color:var(--muted);margin:-8px 0 12px;padding:6px 12px;background:rgba(201,162,39,.06);border-left:3px solid var(--gold);border-radius:4px"></div>
 
   <!-- Toolbar -->
   <div class="toolbar">
-    <input class="field" id="busca" placeholder="🔎 Buscar empresa, decisor, sócio...">
+    <input class="field" id="busca" placeholder="🔎 Buscar empresa, decisor, sócio, cidade...">
     <select class="field" id="fNicho"><option value="">Nicho: todos</option></select>
     <select class="field" id="fRegime"><option value="">Regime: todos</option></select>
     <select class="field" id="fPorte">
@@ -279,14 +278,14 @@
       <option value="ME">ME</option>
     </select>
     <select class="field" id="fScore">
-      <option value="">Score: todos</option>
+      <option value="">Score IA: todos</option>
       <option value="9">🔥 Muito quente (9–10)</option>
       <option value="7">✅ Quente (7–8)</option>
       <option value="5">⏳ Morno (5–6)</option>
     </select>
     <select class="field" id="fStatus">
       <option value="disponivel">Disponíveis</option>
-      <option value="todos">Todos (incluindo usados)</option>
+      <option value="todos">Todos (incl. usados)</option>
       <option value="usado">Somente usados</option>
     </select>
   </div>
@@ -403,9 +402,7 @@
 const SHEET_ID = '1Lh0MapbRVgZTahrfQSMhAPxBqhRJtsSVj1yg7vFrApQ';
 const API_KEY = 'AIzaSyCoCWZfX31nCagR8c0yZfIUDz7KvZScU00';
 const SHEETS_BASE_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/base_empresas?key=${API_KEY}`;
-const SHEETS_LEADS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Leads?key=${API_KEY}`;
 const WEBHOOK_ENRIQUECER_URL = 'https://rodrigopires.app.n8n.cloud/webhook/enriquecer-lead';
-let MODO_ATUAL = 'base'; // 'base' ou 'leads'
 
 // ====== DADOS MOCK — fallback se planilha não estiver acessível ======
 const LEADS_MOCK = [
@@ -651,14 +648,11 @@ function buildCard(l){
 
     <!-- Footer -->
     <div class="card-foot">
-      ${MODO_ATUAL==='base'
-        ? `<button class="btn-analisar" onclick="analisarLead('${l.cnpj}',this)" title="Enriquecer com dívida ativa + score IA">⭐ Analisar Lead</button>`
-        : `<div class="foot-info">🏆 Score IA <span>${l.score}/10</span></div>
-           <div class="foot-info">📊 Score Final <span style="color:var(--gold)">${l.score_final}/10</span></div>
-           <button class="btn-usado ${l.status==='usado'?'marcado':''}" onclick="marcarUsado('${l.cnpj}',this)" title="Marcar como usado">
-             ${l.status==='usado'?'✓ Usado':'☑ Marcar usado'}
-           </button>`
-      }
+      ${l.score_final>5?`<div class="foot-info">📊 Score <span style="color:var(--gold)">${l.score_final}/10</span></div>`:''}
+      <button class="btn-analisar" onclick="analisarLead('${l.cnpj}',this)" title="Enriquecer com dívida ativa + score IA">⭐ Analisar</button>
+      <button class="btn-usado ${l.status==='usado'?'marcado':''}" onclick="marcarUsado('${l.cnpj}',this)" title="Marcar como usado">
+        ${l.status==='usado'?'✓ Usado':'☑ Marcar usado'}
+      </button>
       ${wa?`<a class="btn-wa" href="${wa}" target="_blank">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         Abordar
@@ -714,54 +708,27 @@ function apply(){
   const pt=$('#fPorte').value;
   const sc=parseInt($('#fScore').value)||0;
   const st=$('#fStatus').value;
-  const isBase = MODO_ATUAL==='base';
   const f=LEADS.filter(l=>
     (!ni||l.nicho===ni)&&
     (!rg||l.regime===rg)&&
     (!pt||l.porte===pt)&&
     (!sc||l.score_final>=sc)&&
-    (isBase||st==='todos'||(st==='usado'?l.status==='usado':(l.status!=='usado')))&&
+    (st==='todos'||(st==='usado'?l.status==='usado':l.status!=='usado'))&&
     (!q||(l.empresa+l.fantasia+l.decisor+l.cidade+(l.socios_lista||'')).toLowerCase().includes(q))
   ).sort((a,b)=>(b.score_final||0)-(a.score_final||0));
   render(f);renderStats(f);renderNichos(f);
 }
 
-// ── Troca de aba Base / Leads ──
-async function trocarAba(modo){
-  MODO_ATUAL = modo;
-  const btnBase = $('#tabBase'), btnLeads = $('#tabLeads');
-  const hint = $('#tab-hint');
-  if(modo==='base'){
-    btnBase.style.cssText='padding:8px 20px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:#0a0a0a;font-weight:700;font-size:13px;cursor:pointer';
-    btnLeads.style.cssText='padding:8px 20px;border-radius:8px;border:2px solid var(--line);background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer';
-    $('#fScore').closest ? $('#fScore').style.display='none' : null;
-    $('#fScore').style.display='none';
-    $('#fStatus').style.display='none';
-    hint.textContent='📋 Empresas brutas extraídas do CNPJá — filtre e clique ⭐ Analisar Lead nas que tiver interesse para enriquecer com dívida + score IA.';
-  } else {
-    btnLeads.style.cssText='padding:8px 20px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:#0a0a0a;font-weight:700;font-size:13px;cursor:pointer';
-    btnBase.style.cssText='padding:8px 20px;border-radius:8px;border:2px solid var(--line);background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer';
-    $('#fScore').style.display='';
-    $('#fStatus').style.display='';
-    hint.textContent='⭐ Leads já enriquecidos com dívida ativa + score IA — prontos para prospecção. Use Score e Status para priorizar.';
-  }
-  LEADS = await loadLeads();
-  fillFilters(LEADS);
-  apply();
-}
-
 async function loadLeads(){
   const statusEl = document.getElementById('sheet-status');
-  const url = MODO_ATUAL==='base' ? SHEETS_BASE_URL : SHEETS_LEADS_URL;
   try {
     statusEl.textContent='⏳ Carregando...';
-    const res = await fetch(url, {mode:'cors'});
+    statusEl.style.color='var(--muted)';
+    const res = await fetch(SHEETS_BASE_URL, {mode:'cors'});
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
     const leads = parseSheetRows(data.values||[]);
-    statusEl.textContent = leads.length
-      ? `✅ ${leads.length} ${MODO_ATUAL==='base'?'empresas':'leads'}`
-      : `📋 ${MODO_ATUAL==='base'?'Base vazia — aguarde extração automática':'Sem leads enriquecidos ainda'}`;
+    statusEl.textContent = leads.length ? `✅ ${leads.length} empresas na base` : '📋 Base vazia — use o painel abaixo para extrair';
     statusEl.style.color = leads.length ? 'var(--green)' : 'var(--muted)';
     return leads;
   } catch(e){
@@ -771,8 +738,8 @@ async function loadLeads(){
   }
 }
 
-// Inicializa na aba Base
-trocarAba('base');
+// Inicializa
+loadLeads().then(l=>{ LEADS=l; fillFilters(l); apply(); });
 
 ['busca','fNicho','fRegime','fPorte','fScore','fStatus'].forEach(id=>$('#'+id).addEventListener('input',apply));
 
@@ -838,8 +805,6 @@ $('#btnBuscar').addEventListener('click', async () => {
   const localStr = params.cidade ? `${params.cidade}/${params.uf}` : params.uf;
   status.textContent = `Extraindo empresas de ${localStr} para a base... isso pode levar 1-2 min.`;
 
-  // Troca para aba base automaticamente
-  if(MODO_ATUAL!=='base') await trocarAba('base');
 
   try {
     const res = await fetch(WEBHOOK_URL, {
