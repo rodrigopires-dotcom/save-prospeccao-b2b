@@ -213,6 +213,11 @@
 
   .page-foot{color:var(--muted);font-size:11px;text-align:center;margin-top:12px;letter-spacing:.3px}
 
+  /* Botões de produto */
+  .btn-produto{background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+  .btn-produto:hover{border-color:var(--gold-brd);color:var(--gold)}
+  .btn-produto.active{background:var(--gold-dim);border-color:var(--gold-brd);color:var(--gold)}
+
   @media(max-width:768px){
     body{padding:14px}
     .grid4{grid-template-columns:repeat(2,1fr)}
@@ -262,6 +267,21 @@
   <!-- ═══ BUSCA DE LEADS ═══ -->
   <div class="busca-panel" style="margin-bottom:20px">
     <div class="section-title" style="margin-bottom:14px">🎯 Buscar Leads Qualificados</div>
+
+    <!-- Seletor de produto -->
+    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+      <button class="btn-produto active" id="prod-recuperacao" onclick="setProduto('recuperacao')">
+        💰 Recuperação Tributária
+      </button>
+      <button class="btn-produto" id="prod-holding" onclick="setProduto('holding')">
+        🏛 Holding Familiar
+      </button>
+      <button class="btn-produto" id="prod-reforma" onclick="setProduto('reforma')">
+        📋 Reforma Tributária
+      </button>
+    </div>
+    <div id="produtoDesc" style="background:rgba(201,162,39,.07);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:16px"></div>
+
     <div class="busca-grid">
       <div>
         <div class="busca-label">Quantidade</div>
@@ -467,26 +487,122 @@ const WEBHOOK_EXTRAIR_URL    = 'https://rodrigopires.app.n8n.cloud/webhook/extra
 
 const $ = s => document.querySelector(s);
 
-let ALL_LEADS = [];   // banco completo em memória
-let LOADED    = false;
+let ALL_LEADS    = [];
+let LOADED       = false;
+let PRODUTO_ATIVO = 'recuperacao';
 
-// ====== SCORE LOCAL (sem IA) ======
+// ====== PERFIS DE PRODUTO ======
+const PRODUTOS = {
+  recuperacao: {
+    label: '💰 Recuperação Tributária',
+    desc: 'Prioriza empresas que pagaram muito imposto e têm créditos a recuperar. Foco em Lucro Real/Presumido com 5+ anos e capital relevante.',
+    filtros: { fRegime: '', fPorte: '', fDivida: '' },
+    score(l) {
+      let p = 0;
+      // Regime é o critério mais importante
+      if ((l.regime||'').includes('Real'))       p += 3.0;
+      else if ((l.regime||'').includes('Presumido')) p += 2.5;
+      else return 0; // Simples/MEI não qualifica
+      // Tempo de mercado (quanto mais anos, mais crédito acumulado)
+      if (l.empresa_anos >= 15)      p += 2.5;
+      else if (l.empresa_anos >= 10) p += 2.0;
+      else if (l.empresa_anos >= 5)  p += 1.0;
+      else return 0; // menos de 5 anos não qualifica
+      // Porte
+      if (l.porte === 'DEMAIS')      p += 2.0;
+      else if (l.porte === 'EPP')    p += 1.0;
+      // Capital (indica volume de imposto pago)
+      if (l.capital >= 5000000)      p += 1.5;
+      else if (l.capital >= 500000)  p += 0.75;
+      else if (l.capital >= 100000)  p += 0.25;
+      // Contato
+      if (l.telefone) p += 0.5;
+      if (l.email)    p += 0.5;
+      // Dívida ativa é bônus (abre porta de regularização)
+      if (l.divida_ativa) p += 0.5;
+      return Math.min(10, Math.round(p * 10) / 10);
+    }
+  },
+  holding: {
+    label: '🏛 Holding Familiar',
+    desc: 'Prioriza empresas com múltiplos sócios, capital alto e anos de mercado. Ideal para planejamento sucessório e proteção patrimonial.',
+    filtros: { fRegime: '', fPorte: '', fDivida: '' },
+    score(l) {
+      let p = 0;
+      // Sócios (estrutura familiar = necessidade de holding)
+      if (l.qtd_socios >= 4)       p += 3.0;
+      else if (l.qtd_socios >= 2)  p += 2.0;
+      else if (l.qtd_socios === 1) p += 0.5;
+      // Tempo de mercado (patrimônio acumulado)
+      if (l.empresa_anos >= 20)      p += 2.5;
+      else if (l.empresa_anos >= 10) p += 2.0;
+      else if (l.empresa_anos >= 5)  p += 1.0;
+      else return 0; // menos de 5 anos não qualifica
+      // Capital (patrimônio a proteger)
+      if (l.capital >= 10000000)    p += 2.5;
+      else if (l.capital >= 5000000) p += 2.0;
+      else if (l.capital >= 500000)  p += 1.0;
+      // Porte
+      if (l.porte === 'DEMAIS')     p += 1.0;
+      else if (l.porte === 'EPP')   p += 0.5;
+      // Contato
+      if (l.telefone) p += 0.5;
+      if (l.email)    p += 0.5;
+      // Sem dívida é melhor para holding
+      if (!l.divida_ativa) p += 0.5;
+      return Math.min(10, Math.round(p * 10) / 10);
+    }
+  },
+  reforma: {
+    label: '📋 Reforma Tributária',
+    desc: 'Prioriza empresas com alto volume de operações que serão mais impactadas pela transição para IBS/CBS. Foco em comércio e indústria.',
+    filtros: { fRegime: '', fPorte: 'DEMAIS', fDivida: '' },
+    score(l) {
+      let p = 0;
+      // Regime — não pode ser MEI/Simples
+      if ((l.regime||'').includes('Real'))           p += 2.5;
+      else if ((l.regime||'').includes('Presumido')) p += 2.0;
+      else return 0;
+      // Porte — quanto maior, maior o impacto da reforma
+      if (l.porte === 'DEMAIS')    p += 3.0;
+      else if (l.porte === 'EPP')  p += 1.5;
+      // Tempo de mercado
+      if (l.empresa_anos >= 10)    p += 2.0;
+      else if (l.empresa_anos >= 5) p += 1.0;
+      else return 0;
+      // Capital
+      if (l.capital >= 5000000)    p += 1.5;
+      else if (l.capital >= 500000) p += 0.5;
+      // Contato
+      if (l.telefone) p += 0.5;
+      if (l.email)    p += 0.5;
+      return Math.min(10, Math.round(p * 10) / 10);
+    }
+  }
+};
+
+// ====== TROCAR PRODUTO ======
+function setProduto(p) {
+  PRODUTO_ATIVO = p;
+  document.querySelectorAll('.btn-produto').forEach(b => b.classList.remove('active'));
+  document.getElementById('prod-'+p).classList.add('active');
+  const prod = PRODUTOS[p];
+  document.getElementById('produtoDesc').innerHTML =
+    `<strong style="color:var(--gold)">${prod.label}:</strong> ${prod.desc}`;
+  // aplica filtros padrão do produto
+  Object.entries(prod.filtros).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+  // recalcula scores com novo perfil
+  if (LOADED) {
+    ALL_LEADS.forEach(l => { l.score_final = l.score_ia || PRODUTOS[PRODUTO_ATIVO].score(l); });
+  }
+}
+
+// ====== SCORE LOCAL (usa perfil ativo) ======
 function calcScore(l) {
-  let pts = 0;
-  if (l.telefone)                                  pts += 2.0;
-  if (l.email)                                     pts += 1.0;
-  if (l.divida_ativa)                              pts += 2.0;
-  if (l.divida_valor >= 1000000)                   pts += 0.5;
-  else if (l.divida_valor >= 200000)               pts += 0.25;
-  if (l.porte === 'DEMAIS')                        pts += 1.5;
-  else if (l.porte === 'EPP')                      pts += 0.75;
-  if ((l.regime||'').includes('Real'))             pts += 1.0;
-  else if ((l.regime||'').includes('Presumido'))   pts += 0.5;
-  if (l.empresa_anos >= 10 && l.empresa_anos <= 40) pts += 0.5;
-  else if (l.empresa_anos > 5)                     pts += 0.25;
-  if (l.capital >= 5000000)                        pts += 0.5;
-  else if (l.capital >= 500000)                    pts += 0.25;
-  return Math.min(10, Math.round(pts * 10) / 10);
+  return PRODUTOS[PRODUTO_ATIVO].score(l);
 }
 
 // ====== PARSE PLANILHA ======
@@ -585,6 +701,8 @@ async function carregarBase() {
     statusEl.textContent = ALL_LEADS.length
       ? `✅ ${ALL_LEADS.length} empresas no banco — pronto para buscar`
       : '📋 Banco vazio — use o painel abaixo para carregar dados';
+    // recalcula scores com perfil ativo
+    ALL_LEADS.forEach(l => { l.score_final = l.score_ia || PRODUTOS[PRODUTO_ATIVO].score(l); });
     statusEl.style.color = ALL_LEADS.length ? 'var(--green)' : 'var(--muted)';
   } catch(e) {
     statusEl.textContent = '⚠️ Sem conexão com o banco de dados';
@@ -870,6 +988,7 @@ $('#btnVerTudo').addEventListener('click', () => {
 document.getElementById('updated') && (document.getElementById('updated').textContent = 'Atualizado: '+new Date().toLocaleDateString('pt-BR'));
 $('#btnBuscarLeads').addEventListener('click', buscarLeads);
 $('#busca').addEventListener('keydown', e=>{ if(e.key==='Enter') buscarLeads(); });
+setProduto('recuperacao'); // inicializa descrição e filtros padrão
 carregarBase();
 </script>
 </body>
