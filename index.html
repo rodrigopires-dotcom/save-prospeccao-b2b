@@ -400,10 +400,12 @@
     <div style="font-size:13px;color:var(--muted)">Escolha a quantidade, estado, nicho e critérios — o sistema traz os leads mais qualificados do banco, ordenados por score.</div>
   </div>
 
-  <!-- ═══ CARREGAR BASE ═══ -->
+  <!-- ═══ PASSO 1: CARREGAR BASE GRÁTIS ═══ -->
   <div class="busca-panel" style="margin-top:24px">
-    <div class="section-title" style="margin-bottom:6px">🗃 Carregar Base de Dados</div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Extrai empresas em volume para o banco sem custo de IA. Separe por estado e nicho para organizar melhor.</p>
+    <div class="section-title" style="margin-bottom:4px">
+      📥 Passo 1 — Carregar Base <span style="font-size:11px;background:rgba(34,197,94,.15);color:var(--green);border-radius:20px;padding:2px 10px;font-weight:600;margin-left:6px">GRATUITO</span>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Receita Federal via Brasil.io — sem consumir créditos CNPJá. Filtra EPP/DEMAIS com 5+ anos automaticamente.</p>
     <div class="busca-grid">
       <div>
         <div class="busca-label">Estado (UF)</div>
@@ -426,27 +428,15 @@
         </select>
       </div>
       <div>
-        <div class="busca-label">Nicho (CNAE)</div>
-        <select class="field" id="bCNAE">
-          <option value="">Todos os nichos</option>
-          <option value="4639701">Atacado Alimentos</option>
-          <option value="4711302">Supermercados</option>
-          <option value="4120400">Construção Civil</option>
-          <option value="8630503">Clínicas Médicas</option>
-          <option value="6201501">TI / Desenvolvimento</option>
-          <option value="4930202">Transportadora</option>
-          <option value="0111301">Agricultura / Agro</option>
-          <option value="4110700">Incorporadora Imóveis</option>
-          <option value="8711501">Clínicas / Home Care</option>
-          <option value="2330302">Indústria</option>
-        </select>
+        <div class="busca-label">Cidade (opcional)</div>
+        <input class="field" id="bMunicipio" placeholder="Ex: Belo Horizonte">
       </div>
       <div>
         <div class="busca-label">Porte</div>
         <select class="field" id="bPorte">
-          <option value="">EPP + DEMAIS (recomendado)</option>
-          <option value="07">Apenas DEMAIS (grandes)</option>
-          <option value="05">Apenas EPP</option>
+          <option value="">EPP + DEMAIS</option>
+          <option value="05">Apenas DEMAIS (grandes)</option>
+          <option value="03">Apenas EPP</option>
         </select>
       </div>
       <div>
@@ -454,23 +444,45 @@
         <select class="field" id="bLimite">
           <option value="300">300 empresas</option>
           <option value="500">500 empresas</option>
-          <option value="1000" selected>1000 (máximo recomendado)</option>
+          <option value="1000" selected>1000 empresas</option>
           <option value="2000">2000 empresas</option>
         </select>
       </div>
+    </div>
+    <button class="btn-buscar" id="btnExtrair" style="margin-top:16px">📥 Carregar Base Grátis</button>
+    <div class="busca-status" id="buscaStatus"></div>
+  </div>
+
+  <!-- ═══ PASSO 2: ENRIQUECER TOP N ═══ -->
+  <div class="busca-panel" style="margin-top:16px;border-color:rgba(201,162,39,.5)">
+    <div class="section-title" style="margin-bottom:4px">
+      🚀 Passo 2 — Enriquecer com CNPJá <span style="font-size:11px;background:rgba(201,162,39,.15);color:var(--gold);border-radius:20px;padding:2px 10px;font-weight:600;margin-left:6px">1 CRÉDITO / EMPRESA</span>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Pega as melhores empresas da base pelo perfil selecionado e busca dados completos: decisor real, PGFN exato, email, capital. Salva na aba Leads.</p>
+    <div class="busca-grid">
       <div>
-        <div class="busca-label">Prioridade</div>
-        <select class="field" id="bPrioridade">
-          <option value="divida">🔥 Somente com Dívida Ativa</option>
-          <option value="todas">Todas as empresas</option>
+        <div class="busca-label">Produto</div>
+        <select class="field" id="eProduto">
+          <option value="recuperacao">💰 Recuperação Tributária</option>
+          <option value="holding">🏛 Holding Familiar</option>
+          <option value="reforma">📋 Reforma Tributária</option>
+        </select>
+      </div>
+      <div>
+        <div class="busca-label">Quantidade a enriquecer</div>
+        <select class="field" id="eQtd">
+          <option value="5">5 empresas (5 créditos)</option>
+          <option value="10" selected>10 empresas (10 créditos)</option>
+          <option value="20">20 empresas (20 créditos)</option>
+          <option value="44">44 — usar saldo atual</option>
         </select>
       </div>
     </div>
-    <div style="background:rgba(201,162,39,.08);border:1px solid var(--gold-brd);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted);margin-top:14px">
-      💡 <strong style="color:var(--gold)">Dica de score alto:</strong> empresas com Dívida Ativa + Porte DEMAIS + Lucro Real somam até 6,5 pts sozinhas. Selecione "Somente com Dívida Ativa" para trazer leads com maior potencial de score 7+.
+    <div style="display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn-buscar" id="btnEnriquecerLote">🚀 Enriquecer Top Leads</button>
+      <span style="font-size:12px;color:var(--muted)">Os leads enriquecidos aparecem ao buscar normalmente acima</span>
     </div>
-    <button class="btn-buscar" id="btnExtrair">⚡ Carregar na Base</button>
-    <div class="busca-status" id="buscaStatus"></div>
+    <div class="busca-status" id="enrichStatus"></div>
   </div>
 
   <div class="page-foot">SAVE Inteligência Tributária — Dados via Receita Federal + CNPJá</div>
@@ -481,9 +493,10 @@
 const SHEET_ID = '1Lh0MapbRVgZTahrfQSMhAPxBqhRJtsSVj1yg7vFrApQ';
 const API_KEY  = 'AIzaSyCoCWZfX31nCagR8c0yZfIUDz7KvZScU00';
 const SHEETS_BASE_URL   = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/base_empresas?key=${API_KEY}`;
-const WEBHOOK_ENRIQUECER_URL = 'https://rodrigopires.app.n8n.cloud/webhook/enriquecer-lead';
-const WEBHOOK_MARCAR_URL     = 'https://rodrigopires.app.n8n.cloud/webhook/marcar-lead';
-const WEBHOOK_EXTRAIR_URL    = 'https://rodrigopires.app.n8n.cloud/webhook/extrair-base';
+const WEBHOOK_ENRIQUECER_URL  = 'https://rodrigopires.app.n8n.cloud/webhook/enriquecer-lead';
+const WEBHOOK_MARCAR_URL      = 'https://rodrigopires.app.n8n.cloud/webhook/marcar-lead';
+const WEBHOOK_EXTRAIR_URL     = 'https://rodrigopires.app.n8n.cloud/webhook/extrair-brasil';
+const WEBHOOK_ENRICH_LOTE_URL = 'https://rodrigopires.app.n8n.cloud/webhook/enriquecer-lote';
 
 const $ = s => document.querySelector(s);
 
@@ -932,19 +945,18 @@ async function analisarLead(cnpj, btn) {
   }
 }
 
-// ====== EXTRAIR PARA BASE ======
+// ====== EXTRAIR PARA BASE (brasil.io) ======
 $('#btnExtrair').addEventListener('click', async () => {
   const btn = $('#btnExtrair'), status = $('#buscaStatus');
   const params = {
-    uf:           $('#bUF').value,
-    cnae:         $('#bCNAE').value,
-    porte:        $('#bPorte').value,
-    limite:       parseInt($('#bLimite').value)||300,
-    divida_ativa: $('#bPrioridade').value === 'divida'
+    uf:        $('#bUF').value,
+    municipio: $('#bMunicipio').value.trim(),
+    porte:     $('#bPorte').value,
+    limite:    parseInt($('#bLimite').value)||500
   };
   btn.disabled=true; btn.innerHTML='⏳ Carregando...';
   status.style.color='var(--muted)';
-  status.textContent=`Extraindo empresas de ${params.uf} para a base...`;
+  status.textContent=`Buscando empresas de ${params.uf} via brasil.io (gratuito)...`;
   try {
     const res = await fetch(WEBHOOK_EXTRAIR_URL, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -959,9 +971,34 @@ $('#btnExtrair').addEventListener('click', async () => {
     }, 90000);
   } catch(e){
     status.style.color='var(--amber)';
-    status.textContent='⚠️ Erro ao chamar o webhook. Verifique se o workflow está ativo no n8n.';
+    status.textContent='⚠️ Erro ao chamar o webhook. Verifique se o workflow "Extrator Brasil.io" está ativo no n8n.';
   } finally {
-    btn.disabled=false; btn.innerHTML='⚡ Carregar na Base';
+    btn.disabled=false; btn.innerHTML='📥 Carregar Base Grátis';
+  }
+});
+
+// ====== ENRIQUECER LOTE (CNPJá individual) ======
+$('#btnEnriquecerLote').addEventListener('click', async () => {
+  const btn = $('#btnEnriquecerLote'), status = $('#enrichStatus');
+  const produto = $('#eProduto').value;
+  const quantidade = parseInt($('#eQtd').value)||10;
+  if(!confirm(`Isso vai consumir ${quantidade} crédito(s) CNPJá para enriquecer as top ${quantidade} empresas de "${$('#eProduto').options[$('#eProduto').selectedIndex].text}". Confirmar?`)) return;
+  btn.disabled=true; btn.innerHTML='⏳ Enriquecendo...';
+  status.style.color='var(--muted)';
+  status.textContent=`Enriquecendo top ${quantidade} leads de ${$('#eProduto').options[$('#eProduto').selectedIndex].text}...`;
+  try {
+    const res = await fetch(WEBHOOK_ENRICH_LOTE_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ produto, quantidade })
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    status.style.color='var(--green)';
+    status.textContent=`✅ Enriquecimento iniciado! Os leads aparecem na aba Leads da planilha em ~${quantidade * 3} segundos.`;
+  } catch(e){
+    status.style.color='var(--amber)';
+    status.textContent='⚠️ Erro ao chamar o webhook. Verifique se o workflow "Enriquecedor em Lote" está ativo no n8n.';
+  } finally {
+    btn.disabled=false; btn.innerHTML='🚀 Enriquecer Top Leads';
   }
 });
 
