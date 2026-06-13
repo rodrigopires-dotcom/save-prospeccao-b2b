@@ -448,17 +448,9 @@
           <option value="2000">2000 empresas</option>
         </select>
       </div>
-      <div style="grid-column:span 2">
-        <div class="busca-label">Token Brasil.io <span style="color:var(--green);font-size:10px">(gratuito — veja instruções abaixo)</span></div>
-        <input class="field" id="bToken" placeholder="Cole aqui seu token do brasil.io" style="width:100%">
-      </div>
     </div>
     <button class="btn-buscar" id="btnExtrair" style="margin-top:16px">📥 Carregar Base Grátis</button>
     <div class="busca-status" id="buscaStatus"></div>
-    <div style="margin-top:12px;padding:10px 14px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:8px;font-size:11px;color:var(--muted)">
-      <strong style="color:var(--green)">Como obter o token gratuito:</strong>
-      Acesse <strong style="color:var(--txt)">brasil.io/auth/login</strong> → crie uma conta gratuita → vá em <strong style="color:var(--txt)">brasil.io/api/auth</strong> → copie o token e cole acima.
-    </div>
   </div>
 
   <!-- ═══ PASSO 2: ENRIQUECER TOP N ═══ -->
@@ -956,14 +948,11 @@ async function analisarLead(cnpj, btn) {
 // ====== EXTRAIR PARA BASE (brasil.io) ======
 $('#btnExtrair').addEventListener('click', async () => {
   const btn = $('#btnExtrair'), status = $('#buscaStatus');
-  const token = $('#bToken').value.trim();
-  if(!token){ status.style.color='var(--amber)'; status.textContent='⚠️ Informe o token do brasil.io para continuar.'; return; }
   const params = {
     uf:        $('#bUF').value,
     municipio: $('#bMunicipio').value.trim(),
     porte:     $('#bPorte').value,
-    limite:    parseInt($('#bLimite').value)||500,
-    token
+    limite:    parseInt($('#bLimite').value)||500
   };
   btn.disabled=true; btn.innerHTML='⏳ Carregando...';
   status.style.color='var(--muted)';
