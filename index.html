@@ -537,9 +537,22 @@ function setTab(p){
 // ── Renderizar os resultados em tela ──
 function renderResultado(){
   const total = RESULTADO_ATUAL.length;
-  $('#filterCount').textContent = total
-    ? `${total} de ${LIMITE_TELA} leads`
-    : '';
+  $('#filterCount').textContent = total ? `${total} leads` : '';
+
+  // Atualiza contadores: quantos dos resultados qualificam para cada produto
+  if(total){
+    ['recuperacao','holding','reforma'].forEach(p=>{
+      const count = RESULTADO_ATUAL.filter(l=>PRODUTOS[p].score(l)>=5).length;
+      $('#pcount-'+p).textContent = count;
+      const hot = RESULTADO_ATUAL.filter(l=>PRODUTOS[p].score(l)>=9).length;
+      $('#phot-'+p).textContent = hot ? `🔥 ${hot} score 9+` : count ? `✅ ${count} qualificam` : '❌ nenhum';
+    });
+  } else {
+    ['recuperacao','holding','reforma'].forEach(p=>{
+      $('#pcount-'+p).textContent='—';
+      $('#phot-'+p).textContent='';
+    });
+  }
 
   if(!total){
     showEmpty(
