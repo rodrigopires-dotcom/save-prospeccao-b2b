@@ -213,6 +213,20 @@
 
   .page-foot{color:var(--muted);font-size:11px;text-align:center;margin-top:12px;letter-spacing:.3px}
 
+  /* ── Abas de produto ── */
+  .tab-nav{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px;flex-wrap:wrap;align-items:center}
+  .tab-btn{background:transparent;border:1px solid transparent;color:var(--muted);padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;border-radius:10px;transition:all .2s;display:flex;align-items:center;gap:7px}
+  .tab-btn:hover{background:var(--card2);color:var(--txt)}
+  .tab-btn.active{background:var(--gold-dim);color:var(--gold);border-color:var(--gold-brd)}
+  .tab-badge{background:var(--card2);color:var(--muted);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;min-width:20px;text-align:center}
+  .tab-btn.active .tab-badge{background:rgba(201,162,39,.2);color:var(--gold)}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  .tab-empty{text-align:center;padding:50px 20px;color:var(--muted)}
+  .tab-refresh{margin-left:auto;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;transition:all .2s}
+  .tab-refresh:hover{border-color:var(--gold-brd);color:var(--gold)}
+  .score-mini{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;font-weight:900;font-size:16px;flex-shrink:0}
+
   /* Botões de produto */
   .btn-produto{background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
   .btn-produto:hover{border-color:var(--gold-brd);color:var(--gold)}
@@ -398,6 +412,39 @@
     <div style="font-size:40px;margin-bottom:12px">🎯</div>
     <div style="font-size:16px;font-weight:700;margin-bottom:8px">Configure os filtros e clique em Buscar</div>
     <div style="font-size:13px;color:var(--muted)">Escolha a quantidade, estado, nicho e critérios — o sistema traz os leads mais qualificados do banco, ordenados por score.</div>
+  </div>
+
+  <!-- ═══ LEADS QUALIFICADOS — 3 abas por produto ═══ -->
+  <div class="panel" id="leadsQualPanel" style="margin-top:24px">
+    <div class="section-title" style="margin-bottom:4px">
+      ⭐ Leads Qualificados
+      <span style="font-size:11px;background:rgba(201,162,39,.15);color:var(--gold);border-radius:20px;padding:2px 10px;font-weight:600;margin-left:6px">CNPJá Enriquecidos</span>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Leads que passaram pelo enriquecimento completo — decisor real, contato verificado, PGFN exato. Uma empresa pode aparecer em mais de uma aba.</p>
+
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tabBtn-recuperacao" onclick="mostrarTab('recuperacao')">
+        💰 Recuperação <span class="tab-badge" id="tCount-recuperacao">—</span>
+      </button>
+      <button class="tab-btn" id="tabBtn-holding" onclick="mostrarTab('holding')">
+        🏛 Holding <span class="tab-badge" id="tCount-holding">—</span>
+      </button>
+      <button class="tab-btn" id="tabBtn-reforma" onclick="mostrarTab('reforma')">
+        📋 Reforma <span class="tab-badge" id="tCount-reforma">—</span>
+      </button>
+      <button class="tab-refresh" onclick="carregarLeadsQualificados()">↻ Atualizar</button>
+      <span id="leadsQualStatus" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+
+    <div id="tab-recuperacao" class="tab-content active">
+      <div class="tab-empty">⏳ Carregando leads...</div>
+    </div>
+    <div id="tab-holding" class="tab-content">
+      <div class="tab-empty">⏳ Carregando leads...</div>
+    </div>
+    <div id="tab-reforma" class="tab-content">
+      <div class="tab-empty">⏳ Carregando leads...</div>
+    </div>
   </div>
 
   <!-- ═══ PASSO 1: CARREGAR BASE GRÁTIS ═══ -->
@@ -1002,6 +1049,196 @@ $('#btnEnriquecerLote').addEventListener('click', async () => {
   }
 });
 
+// ====== LEADS QUALIFICADOS — 3 ABAS ======
+const SHEETS_LEADS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Leads?key=${API_KEY}`;
+let ALL_LEADS_QUAL = { recuperacao: [], holding: [], reforma: [] };
+let TAB_ATIVA = 'recuperacao';
+
+async function carregarLeadsQualificados() {
+  const status = $('#leadsQualStatus');
+  status.textContent = '⏳ Carregando...';
+  status.style.color = 'var(--muted)';
+  try {
+    const res = await fetch(SHEETS_LEADS_URL, {mode:'cors'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    const rows = data.values || [];
+    if(rows.length < 2){
+      ALL_LEADS_QUAL = { recuperacao: [], holding: [], reforma: [] };
+      status.textContent = 'Nenhum lead enriquecido ainda — use o Passo 2 abaixo';
+      renderizarTodasAbas();
+      return;
+    }
+    const headers = rows[0].map(h=>h.trim().toLowerCase()
+      .replace(/\s+/g,'_').replace(/[áàã]/g,'a').replace(/[éê]/g,'e')
+      .replace(/[íî]/g,'i').replace(/[óôõ]/g,'o').replace(/[úû]/g,'u').replace(/ç/g,'c'));
+    const bools = v => ['true','TRUE','1','sim','SIM','Sim'].includes(v);
+    const leads = rows.slice(1).map(row => {
+      const o = {};
+      headers.forEach((h,i) => { o[h] = row[i]||''; });
+      const l = {
+        empresa:       toTitleCase(o.empresa||''),
+        fantasia:      toTitleCase(o.fantasia||o.empresa||''),
+        cnpj:          o.cnpj||'',
+        nicho:         o.nicho||'',
+        regime:        o.regime||'',
+        porte:         o.porte||'',
+        cidade:        o.cidade||'',
+        uf:            o.uf||o.estado||'',
+        empresa_anos:  parseInt(o.empresa_anos)||0,
+        capital:       parseFloat((o.capital||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
+        telefone:      o.telefone||'',
+        telefones:     o.telefones||'',
+        email:         o.email||'',
+        emails_todos:  o.emails_todos||'',
+        decisor:       toTitleCase(o.decisor||''),
+        decisor_cargo: o.decisor_cargo||'',
+        socios_lista:  o.socios_lista||'',
+        qtd_socios:    parseInt(o.qtd_socios)||0,
+        site:          o.site||'',
+        divida_ativa:  bools(o.divida_ativa),
+        divida_valor:  parseFloat((o.divida_valor||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
+        linkedin_url:  o.linkedin_url||o.linkedin||'',
+        abordagem:     o.abordagem||o.texto_abordagem||'',
+        score_final:   parseFloat(o.score_final||o.score)||0,
+        produto:       (o.produto||'recuperacao').toLowerCase(),
+        status:        o.status||'disponivel',
+        data_captura:  o.data_extracao||o.data_captura||''
+      };
+      if(!l.uf && l.cidade){
+        const parts = l.cidade.split('/');
+        if(parts.length>=2){ const sig=parts.map(p=>p.trim()).find(p=>/^[A-Z]{2}$/i.test(p)); if(sig) l.uf=sig.toUpperCase(); }
+      }
+      // recalcula score se não vier da planilha
+      if(!l.score_final) l.score_final = PRODUTOS[l.produto]?.score(l) || 0;
+      return l;
+    }).filter(l=>l.empresa);
+
+    ALL_LEADS_QUAL.recuperacao = leads.filter(l=>l.produto==='recuperacao').sort((a,b)=>b.score_final-a.score_final);
+    ALL_LEADS_QUAL.holding     = leads.filter(l=>l.produto==='holding').sort((a,b)=>b.score_final-a.score_final);
+    ALL_LEADS_QUAL.reforma     = leads.filter(l=>l.produto==='reforma').sort((a,b)=>b.score_final-a.score_final);
+
+    const total = leads.length;
+    status.textContent = `✅ ${total} lead${total!==1?'s':''} enriquecido${total!==1?'s':''}`;
+    status.style.color = 'var(--green)';
+    renderizarTodasAbas();
+  } catch(e) {
+    status.textContent = '⚠️ Erro ao carregar aba Leads';
+    status.style.color = 'var(--amber)';
+  }
+}
+
+function renderizarTodasAbas() {
+  ['recuperacao','holding','reforma'].forEach(p => {
+    const leads = ALL_LEADS_QUAL[p];
+    document.getElementById('tCount-'+p).textContent = leads.length || '0';
+    const el = document.getElementById('tab-'+p);
+    if(!leads.length){
+      el.innerHTML = `<div class="tab-empty">
+        <div style="font-size:36px;margin-bottom:12px">🎯</div>
+        <strong>Nenhum lead enriquecido para ${PRODUTOS[p].label}</strong><br>
+        <div style="font-size:13px;margin-top:8px">Use o <strong>Passo 2</strong> abaixo — selecione "${PRODUTOS[p].label.replace(/[^ ]+ /,'')}" e clique em Enriquecer Top Leads.</div>
+      </div>`;
+    } else {
+      el.innerHTML = `<div class="cards-grid">${leads.map(l=>buildCardQual(l,p)).join('')}</div>`;
+    }
+  });
+}
+
+function buildCardQual(l, produto) {
+  const sc = l.score_final;
+  const wa = l.telefone
+    ? `https://wa.me/55${l.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(l.abordagem||'Olá!')}`
+    : '';
+  const linkedinHref = l.linkedin_url ? (l.linkedin_url.startsWith('http')?l.linkedin_url:'https://'+l.linkedin_url) : '';
+  const prodLabel = { recuperacao:'💰 Recuperação', holding:'🏛 Holding', reforma:'📋 Reforma' };
+  return `
+  <div class="lead-card ${sc>=9?'very-hot':''}">
+    <div class="card-strip ${stripClass(sc)}"></div>
+    <div class="card-head">
+      <div class="score-badge ${scoreClass(sc)}">
+        ${sc}${sc>=9?'<span class="flame">🔥</span>':''}
+      </div>
+      <div class="card-title">
+        <div class="card-empresa">${l.empresa}</div>
+        ${l.fantasia&&l.fantasia!==l.empresa?`<div class="card-fantasia">${l.fantasia}</div>`:''}
+        <div class="card-meta">
+          <span class="pill" style="background:var(--gold-dim);color:var(--gold);border-color:var(--gold-brd)">${prodLabel[produto]}</span>
+          ${l.porte?`<span class="pill ${l.porte==='DEMAIS'?'demais':'epp'}">${l.porte}</span>`:''}
+          ${l.regime?`<span class="pill ${(l.regime||'').includes('Real')?'real':'pres'}">${(l.regime||'').replace('Lucro ','')}</span>`:''}
+          ${l.cidade?`<span class="pill">📍 ${l.cidade}</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="info-row">
+        <div class="info-icon">🏢</div>
+        <div class="info-content">
+          <div class="info-label">Empresa</div>
+          <div class="info-val">${l.empresa_anos?l.empresa_anos+' anos de mercado':''}${l.capital?' · Capital: <strong style="color:var(--gold)">'+fmtValor(l.capital)+'</strong>':''}</div>
+          ${l.site?`<div class="info-val small">🌐 <a href="https://${l.site}" target="_blank">${l.site}</a></div>`:''}
+        </div>
+      </div>
+      ${l.decisor?`
+      <div class="info-row">
+        <div class="info-icon">👤</div>
+        <div class="info-content">
+          <div class="info-label">Decisor Confirmado</div>
+          <div class="info-val" style="color:var(--gold);font-weight:700">${l.decisor}${l.decisor_cargo?' <span style="color:var(--muted);font-size:11px;font-weight:400">('+l.decisor_cargo+')</span>':''}</div>
+          ${l.qtd_socios>1?`<div class="socios-wrap"><strong>${l.qtd_socios} sócios:</strong> ${l.socios_lista}</div>`:''}
+        </div>
+      </div>`:''}
+      ${(l.telefone||l.email)?`
+      <div class="info-row">
+        <div class="info-icon">📞</div>
+        <div class="info-content">
+          <div class="info-label">Contato Verificado</div>
+          ${(l.telefones?l.telefones.split('|'):l.telefone?[l.telefone]:[]).map(t=>`<div class="info-val">📱 ${t.trim()}</div>`).join('')}
+          ${(l.emails_todos?l.emails_todos.split('|'):l.email?[l.email]:[]).map(e=>`<div class="info-val small">✉️ ${e.trim()}</div>`).join('')}
+        </div>
+      </div>`:''}
+      ${linkedinHref?`
+      <div class="info-row">
+        <div class="info-icon">💼</div>
+        <div class="info-content">
+          <div class="info-label">LinkedIn</div>
+          <div class="info-val"><a href="${linkedinHref}" target="_blank" style="color:var(--gold)">Ver perfil →</a></div>
+        </div>
+      </div>`:''}
+      ${l.divida_ativa?`
+      <div class="divida-block">
+        <div class="divida-ico">⚠️</div>
+        <div>
+          <div class="divida-val">${fmtValor(l.divida_valor)||'Dívida Ativa confirmada'}</div>
+          <div class="divida-sub">Dívida Ativa Federal — oportunidade confirmada</div>
+        </div>
+      </div>`:''}
+      ${l.abordagem?`
+      <div class="abordagem-block" onclick="this.classList.toggle('expanded');navigator.clipboard&&navigator.clipboard.writeText(this.dataset.txt);" data-txt="${l.abordagem.replace(/"/g,'&quot;').replace(/'/g,'&#39;')}">
+        <div class="abr-label">💬 Abordagem personalizada — clique para copiar</div>
+        <div class="abr-preview">${l.abordagem.substring(0,120)}${l.abordagem.length>120?'...':''}</div>
+        <div class="abr-more">${l.abordagem}</div>
+      </div>`:''}
+    </div>
+    <div class="card-foot">
+      <div class="foot-info">📊 Score <span style="color:var(--gold)">${sc}/10</span> ✨ enriquecido</div>
+      ${l.data_captura?`<div class="foot-info">📅 <span>${l.data_captura}</span></div>`:''}
+      ${wa?`<a class="btn-wa" href="${wa}" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Abordar via WhatsApp
+      </a>`:''}
+    </div>
+  </div>`;
+}
+
+function mostrarTab(p) {
+  TAB_ATIVA = p;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tabBtn-'+p).classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-'+p).classList.add('active');
+}
+
 // ====== VER TUDO NO BANCO ======
 $('#btnVerTudo').addEventListener('click', () => {
   if(!LOADED){ alert('Aguarde o banco carregar.'); return; }
@@ -1025,8 +1262,9 @@ $('#btnVerTudo').addEventListener('click', () => {
 document.getElementById('updated') && (document.getElementById('updated').textContent = 'Atualizado: '+new Date().toLocaleDateString('pt-BR'));
 $('#btnBuscarLeads').addEventListener('click', buscarLeads);
 $('#busca').addEventListener('keydown', e=>{ if(e.key==='Enter') buscarLeads(); });
-setProduto('recuperacao'); // inicializa descrição e filtros padrão
+setProduto('recuperacao');
 carregarBase();
+carregarLeadsQualificados();
 </script>
 </body>
 </html>
