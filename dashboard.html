@@ -3,1268 +3,635 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SAVE — Máquina de Prospecção B2B</title>
+<title>SAVE — Prospecção B2B</title>
 <style>
-  :root {
-    --bg:       #0a0a0a;
-    --card:     #141414;
-    --card2:    #1c1c1c;
-    --line:     #2a2a2a;
-    --gold:     #C9A227;
-    --gold2:    #e8be3a;
-    --gold-dim: rgba(201,162,39,.12);
-    --gold-brd: rgba(201,162,39,.3);
-    --txt:      #f0f0f0;
-    --muted:    #888888;
-    --green:    #22c55e;
-    --red:      #ef4444;
-    --amber:    #f59e0b;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
-  body{background:var(--bg);color:var(--txt);padding:28px;min-height:100vh}
-  .wrap{max-width:1280px;margin:0 auto}
+:root{
+  --bg:#0a0a0a;--card:#141414;--card2:#1c1c1c;--line:#2a2a2a;
+  --gold:#C9A227;--gold2:#e8be3a;--gold-dim:rgba(201,162,39,.12);--gold-brd:rgba(201,162,39,.3);
+  --txt:#f0f0f0;--muted:#888;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;
+  --blue:#3b82f6;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:var(--bg);color:var(--txt);min-height:100vh}
 
-  /* ── Header ── */
-  .header{display:flex;align-items:center;gap:16px;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--line)}
-  .logo-img{height:48px;width:auto;object-fit:contain}
-  .logo-sub{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.8px;text-transform:uppercase}
-  .header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
-  .badge-live{background:var(--gold-dim);border:1px solid var(--gold-brd);color:var(--gold);font-size:11px;padding:5px 14px;border-radius:20px;letter-spacing:.5px}
+/* ── Header ── */
+.header{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;background:rgba(10,10,10,.95);backdrop-filter:blur(8px)}
+.logo-img{height:38px;width:auto}
+.header-title{font-size:15px;font-weight:800;color:var(--txt)}
+.header-sub{font-size:10px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.badge{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid;font-weight:600}
+.badge-live{background:var(--gold-dim);border-color:var(--gold-brd);color:var(--gold)}
+.btn-admin{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
+.btn-admin:hover{border-color:var(--gold-brd);color:var(--gold)}
 
-  /* ── Separator ── */
-  .sep{height:1px;background:linear-gradient(90deg,var(--gold) 0%,transparent 60%);margin:4px 0 24px}
+/* ── Produto Tabs ── */
+.produto-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--card);overflow-x:auto}
+.prod-tab{flex:1;min-width:160px;padding:16px 20px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;color:var(--muted);position:relative}
+.prod-tab:hover{background:var(--card2);color:var(--txt)}
+.prod-tab.active{border-bottom-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+.prod-tab .pt-icon{font-size:22px}
+.prod-tab .pt-label{font-size:12px;font-weight:700;letter-spacing:.3px}
+.prod-tab .pt-count{font-size:22px;font-weight:900;line-height:1}
+.prod-tab .pt-hot{font-size:10px;color:var(--muted)}
+.prod-tab.active .pt-hot{color:rgba(201,162,39,.7)}
 
-  /* ── Toolbar ── */
-  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-  .field{flex:1;min-width:200px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;color:var(--txt);font-size:13px;outline:none;transition:border .2s}
-  .field:focus{border-color:var(--gold)}
-  .field::placeholder{color:var(--muted)}
-  select.field{cursor:pointer}
+/* ── Filtro bar ── */
+.filter-bar{display:flex;gap:10px;padding:14px 28px;background:var(--card);border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap}
+.filter-field{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--txt);font-size:13px;outline:none;transition:border .2s;min-width:0}
+.filter-field:focus{border-color:var(--gold)}
+.filter-field::placeholder{color:var(--muted)}
+.filter-field.wide{flex:1;min-width:180px}
+.filter-field.sm{width:140px}
+.filter-count{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
 
-  /* ── KPI Grid ── */
-  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
-  .kpi::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold)}
-  .kpi .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.7px}
-  .kpi .num{font-size:28px;font-weight:800;margin-top:6px;color:var(--txt)}
-  .kpi .num small{font-size:12px;color:var(--muted);font-weight:400}
-  .kpi.hot::before{background:var(--gold2)}
-  .kpi.hot .num{color:var(--gold)}
+/* ── Content ── */
+.content{padding:24px 28px;max-width:1400px;margin:0 auto}
 
-  /* ── Panel ── */
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
-  .section-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:16px;color:var(--txt)}
-  .section-title::before{content:'';width:3px;height:16px;background:var(--gold);border-radius:2px;flex-shrink:0}
+/* ── Cards Grid ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px}
 
-  /* ── Nicho bars ── */
-  .nicho-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .nicho-card{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:14px}
-  .nicho-card .n-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-  .nicho-card .n-num{font-size:20px;font-weight:800;color:var(--txt);margin:4px 0 8px}
-  .nicho-bar{height:4px;border-radius:4px;background:var(--line);overflow:hidden}
-  .nicho-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px}
+/* ── Lead Card ── */
+.lead-card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,transform .15s}
+.lead-card:hover{border-color:var(--gold-brd);transform:translateY(-2px)}
+.lead-card.top{border-color:var(--gold-brd)}
+.card-strip{height:3px;width:100%}
+.strip-hot{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.strip-warm{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.strip-cold{background:var(--line)}
 
-  /* ── Lead Cards Grid ── */
-  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
+.card-head{padding:16px 18px 12px;display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid var(--line)}
+.score-badge{flex-shrink:0;width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;position:relative}
+.sb-hot{background:var(--gold-dim);color:var(--gold);border:1.5px solid var(--gold-brd)}
+.sb-warm{background:rgba(245,158,11,.12);color:#fbbf24;border:1.5px solid rgba(245,158,11,.3)}
+.sb-cold{background:rgba(100,100,100,.1);color:var(--muted);border:1.5px solid var(--line)}
+.flame{position:absolute;top:-7px;right:-7px;font-size:15px}
 
-  .lead-card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:16px;
-    overflow:hidden;
-    display:flex;
-    flex-direction:column;
-    transition:border-color .2s, transform .15s;
-  }
-  .lead-card:hover{border-color:var(--gold-brd);transform:translateY(-2px)}
-  .lead-card.very-hot{border-color:var(--gold-brd)}
+.card-info{flex:1;min-width:0}
+.card-empresa{font-size:14px;font-weight:800;line-height:1.3;word-break:break-word}
+.card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.pill{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.gold{background:var(--gold-dim);color:var(--gold2);border-color:var(--gold-brd)}
+.pill.green{background:rgba(34,197,94,.08);color:#4ade80;border-color:rgba(34,197,94,.2)}
+.pill.blue{background:rgba(59,130,246,.08);color:#93c5fd;border-color:rgba(59,130,246,.2)}
+.pill.red{background:rgba(239,68,68,.1);color:#fca5a5;border-color:rgba(239,68,68,.25);font-weight:700}
 
-  /* Card top strip by score */
-  .card-strip{height:3px;width:100%}
-  .strip-hot  {background:linear-gradient(90deg,var(--gold),var(--gold2))}
-  .strip-warm {background:linear-gradient(90deg,#f59e0b,#fbbf24)}
-  .strip-cold {background:var(--line)}
+.card-body{padding:14px 18px;display:flex;flex-direction:column;gap:11px;flex:1}
+.info-row{display:flex;gap:10px;align-items:flex-start}
+.info-ico{color:var(--gold);font-size:13px;width:16px;text-align:center;flex-shrink:0;margin-top:1px}
+.info-inner{flex:1;min-width:0}
+.info-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.info-val{font-size:13px;color:var(--txt);font-weight:500;word-break:break-word}
+.info-val.sm{font-size:12px;color:var(--muted)}
+.info-val a{color:var(--gold);text-decoration:none}
 
-  /* Card header */
-  .card-head{padding:16px 18px 12px;display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid var(--line)}
-  .score-badge{
-    flex-shrink:0;
-    width:48px;height:48px;border-radius:12px;
-    display:flex;align-items:center;justify-content:center;
-    font-weight:900;font-size:20px;
-    position:relative;
-  }
-  .sb-hot {background:var(--gold-dim);color:var(--gold);border:1.5px solid var(--gold-brd)}
-  .sb-warm{background:rgba(245,158,11,.12);color:#fbbf24;border:1.5px solid rgba(245,158,11,.3)}
-  .sb-cold{background:rgba(100,100,100,.1);color:var(--muted);border:1.5px solid var(--line)}
-  .score-badge .flame{position:absolute;top:-6px;right:-6px;font-size:14px}
+.decisor-box{background:rgba(201,162,39,.07);border:1px solid var(--gold-brd);border-radius:10px;padding:10px 14px}
+.decisor-nome{font-size:14px;font-weight:800;color:var(--gold)}
+.decisor-cargo{font-size:11px;color:var(--muted);margin-top:2px}
+.decisor-contato{margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.decisor-contato span{font-size:12px;color:var(--txt)}
 
-  .card-title{flex:1;min-width:0}
-  .card-empresa{font-size:14px;font-weight:800;color:var(--txt);line-height:1.3;word-break:break-word}
-  .card-fantasia{font-size:11px;color:var(--muted);margin-top:2px}
-  .card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.divida-box{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.divida-val{font-size:15px;font-weight:800;color:#fca5a5}
+.divida-sub{font-size:11px;color:var(--muted)}
 
-  /* Pill tags */
-  .pill{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;display:inline-block}
-  .pill.demais{background:var(--gold-dim);color:var(--gold2);border-color:var(--gold-brd)}
-  .pill.epp   {background:rgba(201,162,39,.07);color:#d4aa50;border-color:rgba(201,162,39,.2)}
-  .pill.real  {background:rgba(34,197,94,.08);color:#4ade80;border-color:rgba(34,197,94,.2)}
-  .pill.pres  {background:rgba(100,150,255,.08);color:#93c5fd;border-color:rgba(100,150,255,.2)}
-  .pill.divida{background:rgba(239,68,68,.1);color:#fca5a5;border-color:rgba(239,68,68,.25);font-weight:600}
+.abr-box{background:var(--card2);border-left:2px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 12px;font-size:12px;color:var(--muted);font-style:italic;line-height:1.5;cursor:pointer;transition:background .15s;position:relative}
+.abr-box:hover{background:#222}
+.abr-lbl{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;font-style:normal;font-weight:700;margin-bottom:4px}
+.abr-full{display:none}
+.abr-box.open .abr-prev{display:none}
+.abr-box.open .abr-full{display:block}
+.copy-tip{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--gold);opacity:0;transition:opacity .2s;font-style:normal}
+.abr-box:hover .copy-tip{opacity:1}
 
-  /* Card body sections */
-  .card-body{padding:14px 18px;display:flex;flex-direction:column;gap:12px;flex:1}
+.card-foot{padding:10px 18px;border-top:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.foot-txt{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.foot-txt span{color:var(--txt)}
+.btn-wa{margin-left:auto;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none;transition:opacity .2s}
+.btn-wa:hover{opacity:.85}
+.btn-usado{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;transition:all .2s}
+.btn-usado:hover{border-color:var(--green);color:var(--green)}
+.btn-usado.ok{border-color:var(--green);color:var(--green);opacity:.6}
+.lead-card.usado{opacity:.35;pointer-events:none}
 
-  .info-row{display:flex;gap:10px;align-items:flex-start}
-  .info-icon{color:var(--gold);font-size:13px;flex-shrink:0;width:16px;text-align:center;margin-top:1px}
-  .info-content{flex:1;min-width:0}
-  .info-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
-  .info-val{font-size:13px;color:var(--txt);font-weight:500;word-break:break-word}
-  .info-val.small{font-size:12px;color:var(--muted)}
-  .info-val a{color:var(--gold);text-decoration:none}
-  .info-val a:hover{color:var(--gold2)}
+/* ── Empty / Loading ── */
+.empty-state{text-align:center;padding:70px 20px;color:var(--muted)}
+.empty-state .ei{font-size:44px;margin-bottom:14px}
+.empty-state strong{color:var(--txt);display:block;margin-bottom:6px;font-size:16px}
 
-  /* Socios list */
-  .socios-wrap{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5}
-  .socios-wrap strong{color:var(--txt);font-weight:600}
+/* ── Admin Panel ── */
+.admin-toggle{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:none;background:transparent;color:var(--muted);font-size:12px;cursor:pointer;border-top:1px solid var(--line);margin-top:32px;transition:color .2s}
+.admin-toggle:hover{color:var(--txt)}
+.admin-panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin:0 28px 28px;display:none}
+.admin-panel.open{display:block}
+.admin-section{margin-bottom:24px}
+.admin-section:last-child{margin-bottom:0}
+.admin-title{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.admin-title::before{content:'';width:3px;height:14px;background:var(--gold);border-radius:2px}
+.admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.admin-field{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--txt);font-size:13px;outline:none;width:100%;transition:border .2s}
+.admin-field:focus{border-color:var(--gold)}
+.admin-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.btn-action{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:10px;padding:11px 28px;font-weight:800;font-size:13px;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;gap:7px;margin-top:14px}
+.btn-action:hover{opacity:.85}
+.btn-action:disabled{opacity:.4;cursor:not-allowed}
+.btn-action.outline{background:transparent;border:1px solid var(--gold-brd);color:var(--gold)}
+.status-msg{font-size:12px;margin-top:8px;min-height:16px}
+.credit-warn{font-size:11px;color:var(--amber);margin-top:6px}
 
-  /* Divida block */
-  .divida-block{
-    background:rgba(239,68,68,.07);
-    border:1px solid rgba(239,68,68,.2);
-    border-radius:10px;
-    padding:10px 14px;
-    display:flex;align-items:center;gap:10px;
-  }
-  .divida-block .divida-ico{font-size:20px}
-  .divida-block .divida-val{font-size:15px;font-weight:800;color:#fca5a5}
-  .divida-block .divida-sub{font-size:11px;color:var(--muted)}
-
-  /* Digital presence */
-  .presence-row{display:flex;gap:8px}
-  .pres-chip{
-    flex:1;display:flex;align-items:center;gap:6px;
-    background:var(--card2);border:1px solid var(--line);
-    border-radius:8px;padding:7px 10px;font-size:12px;
-  }
-  .pres-chip.ok {border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.06);color:#4ade80}
-  .pres-chip.no {color:var(--muted)}
-  .pres-chip .pico{font-size:14px}
-
-  /* Abordagem preview */
-  .abordagem-block{
-    background:var(--card2);
-    border-left:2px solid var(--gold);
-    border-radius:0 8px 8px 0;
-    padding:10px 12px;
-    font-size:12px;color:var(--muted);
-    font-style:italic;
-    line-height:1.5;
-    cursor:pointer;
-    transition:background .15s;
-    position:relative;
-  }
-  .abordagem-block:hover{background:#222}
-  .abordagem-block .abr-label{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;font-style:normal;font-weight:700;margin-bottom:4px}
-  .abordagem-block .abr-more{display:none}
-  .abordagem-block.expanded .abr-preview{display:none}
-  .abordagem-block.expanded .abr-more{display:block}
-  .copy-hint{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--gold);opacity:0;transition:opacity .2s;font-style:normal}
-  .abordagem-block:hover .copy-hint{opacity:1}
-
-  /* Card footer */
-  .card-foot{
-    padding:10px 18px;
-    border-top:1px solid var(--line);
-    display:flex;align-items:center;gap:8px;
-    flex-wrap:wrap;
-  }
-  .foot-info{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
-  .foot-info span{color:var(--txt)}
-  .btn-wa{
-    margin-left:auto;
-    background:linear-gradient(135deg,#25d366,#128c7e);
-    color:#fff;border:none;border-radius:8px;
-    padding:7px 14px;font-size:12px;font-weight:700;
-    cursor:pointer;display:flex;align-items:center;gap:5px;
-    text-decoration:none;transition:opacity .2s;
-  }
-  .btn-wa:hover{opacity:.85}
-
-  /* Empty state */
-  .empty{text-align:center;padding:60px 20px;color:var(--muted)}
-  .empty .ei{font-size:40px;margin-bottom:12px}
-
-  /* Busca panel */
-  .busca-panel{background:var(--card);border:1px solid var(--gold-brd);border-radius:14px;padding:20px;margin-bottom:20px}
-  .busca-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:14px}
-  .busca-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-  .btn-buscar{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:10px;padding:12px 32px;font-weight:800;font-size:14px;cursor:pointer;letter-spacing:.3px;transition:opacity .2s;display:flex;align-items:center;gap:8px;margin-top:16px}
-  .btn-buscar:hover{opacity:.85}
-  .btn-buscar:disabled{opacity:.5;cursor:not-allowed}
-  .btn-usado{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 14px;font-size:11px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
-  .btn-analisar{background:var(--gold-dim);border:1px solid var(--gold-brd);color:var(--gold);border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
-  .btn-analisar:hover{opacity:.85}
-  .btn-analisar:disabled{opacity:.5;cursor:not-allowed}
-  .btn-usado:hover{border-color:var(--green);color:var(--green)}
-  .btn-usado.marcado{border-color:var(--green);color:var(--green);opacity:.6}
-  .lead-card.usado{opacity:.35;pointer-events:none}
-  .busca-status{font-size:12px;margin-top:10px;min-height:18px}
-
-  .page-foot{color:var(--muted);font-size:11px;text-align:center;margin-top:12px;letter-spacing:.3px}
-
-  /* ── Abas de produto ── */
-  .tab-nav{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px;flex-wrap:wrap;align-items:center}
-  .tab-btn{background:transparent;border:1px solid transparent;color:var(--muted);padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;border-radius:10px;transition:all .2s;display:flex;align-items:center;gap:7px}
-  .tab-btn:hover{background:var(--card2);color:var(--txt)}
-  .tab-btn.active{background:var(--gold-dim);color:var(--gold);border-color:var(--gold-brd)}
-  .tab-badge{background:var(--card2);color:var(--muted);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;min-width:20px;text-align:center}
-  .tab-btn.active .tab-badge{background:rgba(201,162,39,.2);color:var(--gold)}
-  .tab-content{display:none}
-  .tab-content.active{display:block}
-  .tab-empty{text-align:center;padding:50px 20px;color:var(--muted)}
-  .tab-refresh{margin-left:auto;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;transition:all .2s}
-  .tab-refresh:hover{border-color:var(--gold-brd);color:var(--gold)}
-  .score-mini{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;font-weight:900;font-size:16px;flex-shrink:0}
-
-  /* Botões de produto */
-  .btn-produto{background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
-  .btn-produto:hover{border-color:var(--gold-brd);color:var(--gold)}
-  .btn-produto.active{background:var(--gold-dim);border-color:var(--gold-brd);color:var(--gold)}
-
-  @media(max-width:768px){
-    body{padding:14px}
-    .grid4{grid-template-columns:repeat(2,1fr)}
-    .nicho-grid{grid-template-columns:repeat(2,1fr)}
-    .cards-grid{grid-template-columns:1fr}
-    .field{min-width:0}
-    .toolbar{flex-direction:column}
-    .busca-grid{grid-template-columns:1fr}
-    .header{flex-wrap:wrap;gap:10px}
-    .header-right{width:100%;justify-content:flex-start}
-    .btn-buscar{width:100%;justify-content:center}
-    .card-foot{flex-direction:column;align-items:flex-start;gap:6px}
-    .btn-wa{margin-left:0;width:100%;justify-content:center}
-    .presence-row{flex-direction:column}
-    .kpi .num{font-size:22px}
-  }
-  @media(max-width:420px){
-    body{padding:10px}
-    .grid4{grid-template-columns:repeat(2,1fr);gap:8px}
-    .kpi{padding:12px 14px}
-    .panel{padding:14px}
-    .busca-panel{padding:14px}
-  }
+@media(max-width:768px){
+  .header{padding:14px 16px}
+  .produto-tabs{gap:0}
+  .prod-tab{min-width:100px;padding:12px 14px}
+  .prod-tab .pt-count{font-size:18px}
+  .filter-bar{padding:12px 16px}
+  .filter-field.sm{width:120px}
+  .content{padding:16px}
+  .cards-grid{grid-template-columns:1fr}
+  .card-foot{flex-direction:column;align-items:flex-start}
+  .btn-wa{margin-left:0;width:100%;justify-content:center}
+  .admin-panel{margin:0 16px 16px}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- Header -->
-  <div class="header">
-    <img class="logo-img" src="https://adv.agilesave.com.br/wp-content/uploads/2025/01/PASTA-CRIATIVOS-96.png" alt="SAVE Inteligência Tributária" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
-    <div id="logo-fallback" style="display:none;align-items:center;gap:10px">
-      <div style="width:42px;height:42px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:#000">S</div>
-      <div>
-        <div style="font-size:20px;font-weight:800"><span style="color:var(--gold)">SAVE</span> Inteligência Tributária</div>
-        <div class="logo-sub">Máquina de Prospecção B2B</div>
-      </div>
-    </div>
-    <div class="header-right">
-      <span id="updated" style="font-size:11px;color:var(--muted)"></span>
-      <span class="badge-live">● Leads ativos</span>
-    </div>
+<!-- ── Header ── -->
+<div class="header">
+  <img class="logo-img" src="https://adv.agilesave.com.br/wp-content/uploads/2025/01/PASTA-CRIATIVOS-96.png" alt="SAVE" onerror="this.style.display='none'">
+  <div>
+    <div class="header-title">SAVE Prospecção B2B</div>
+    <div class="header-sub">Leads qualificados por produto</div>
   </div>
+  <div class="header-right">
+    <span id="syncStatus" style="font-size:11px;color:var(--muted)"></span>
+    <span class="badge badge-live">● Ao vivo</span>
+    <button class="btn-admin" onclick="toggleAdmin()">⚙️ Admin</button>
+  </div>
+</div>
 
-  <div class="sep"></div>
+<!-- ── Abas de Produto ── -->
+<div class="produto-tabs">
+  <button class="prod-tab active" id="ptab-recuperacao" onclick="setTab('recuperacao')">
+    <span class="pt-icon">💰</span>
+    <span class="pt-count" id="pcount-recuperacao">—</span>
+    <span class="pt-label">Recuperação Tributária</span>
+    <span class="pt-hot" id="phot-recuperacao"></span>
+  </button>
+  <button class="prod-tab" id="ptab-holding" onclick="setTab('holding')">
+    <span class="pt-icon">🏛</span>
+    <span class="pt-count" id="pcount-holding">—</span>
+    <span class="pt-label">Holding Familiar</span>
+    <span class="pt-hot" id="phot-holding"></span>
+  </button>
+  <button class="prod-tab" id="ptab-reforma" onclick="setTab('reforma')">
+    <span class="pt-icon">📋</span>
+    <span class="pt-count" id="pcount-reforma">—</span>
+    <span class="pt-label">Reforma Tributária</span>
+    <span class="pt-hot" id="phot-reforma"></span>
+  </button>
+</div>
 
-  <!-- ═══ BUSCA DE LEADS ═══ -->
-  <div class="busca-panel" style="margin-bottom:20px">
-    <div class="section-title" style="margin-bottom:14px">🎯 Buscar Leads Qualificados</div>
+<!-- ── Filtro bar ── -->
+<div class="filter-bar">
+  <input class="filter-field wide" id="fCidade" placeholder="🔍 Cidade..." oninput="filtrar()">
+  <select class="filter-field sm" id="fNicho" onchange="filtrar()">
+    <option value="">Todos os nichos</option>
+  </select>
+  <select class="filter-field sm" id="fScore" onchange="filtrar()">
+    <option value="">Qualquer score</option>
+    <option value="9">🔥 Score 9+</option>
+    <option value="7">✅ Score 7+</option>
+    <option value="5">⏳ Score 5+</option>
+  </select>
+  <select class="filter-field sm" id="fStatus" onchange="filtrar()">
+    <option value="disponivel">Disponíveis</option>
+    <option value="todos">Todos</option>
+    <option value="usado">Já abordados</option>
+  </select>
+  <span class="filter-count" id="filterCount"></span>
+</div>
 
-    <!-- Seletor de produto -->
-    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
-      <button class="btn-produto active" id="prod-recuperacao" onclick="setProduto('recuperacao')">
-        💰 Recuperação Tributária
-      </button>
-      <button class="btn-produto" id="prod-holding" onclick="setProduto('holding')">
-        🏛 Holding Familiar
-      </button>
-      <button class="btn-produto" id="prod-reforma" onclick="setProduto('reforma')">
-        📋 Reforma Tributária
-      </button>
-    </div>
-    <div id="produtoDesc" style="background:rgba(201,162,39,.07);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:16px"></div>
+<!-- ── Cards ── -->
+<div class="content">
+  <div class="cards-grid" id="cardsGrid"></div>
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div class="ei">🎯</div>
+    <strong id="emptyTitle">Nenhum lead encontrado</strong>
+    <span id="emptyMsg"></span>
+  </div>
+  <div id="loadingState" class="empty-state">
+    <div class="ei">⏳</div>
+    <strong>Carregando leads...</strong>
+  </div>
+</div>
 
-    <div class="busca-grid">
+<!-- ── Admin toggle ── -->
+<button class="admin-toggle" onclick="toggleAdmin()">
+  <span id="adminToggleIco">▼</span> Ferramentas de administração
+</button>
+
+<!-- ── Admin Panel ── -->
+<div class="admin-panel" id="adminPanel">
+
+  <!-- Passo 1 -->
+  <div class="admin-section">
+    <div class="admin-title">📥 Passo 1 — Carregar Base <span style="font-size:10px;background:rgba(34,197,94,.15);color:var(--green);border-radius:20px;padding:2px 8px;margin-left:6px">GRATUITO</span></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Busca empresas EPP/DEMAIS com 5+ anos via Receita Federal (brasil.io). Não consome créditos CNPJá.</p>
+    <div class="admin-grid">
       <div>
-        <div class="busca-label">Quantidade</div>
-        <select class="field" id="fQtd">
-          <option value="10">10 leads</option>
-          <option value="20" selected>20 leads</option>
-          <option value="30">30 leads</option>
-          <option value="50">50 leads</option>
-          <option value="100">100 leads</option>
-        </select>
-      </div>
-      <div>
-        <div class="busca-label">Estado</div>
-        <select class="field" id="fUF">
-          <option value="">Todos os estados</option>
-          <option value="MG">MG — Minas Gerais</option>
-          <option value="SP">SP — São Paulo</option>
-          <option value="RJ">RJ — Rio de Janeiro</option>
-          <option value="RS">RS — Rio Grande do Sul</option>
-          <option value="PR">PR — Paraná</option>
-          <option value="SC">SC — Santa Catarina</option>
-          <option value="GO">GO — Goiás</option>
-          <option value="BA">BA — Bahia</option>
-          <option value="PE">PE — Pernambuco</option>
-          <option value="CE">CE — Ceará</option>
-          <option value="MT">MT — Mato Grosso</option>
-          <option value="MS">MS — Mato Grosso do Sul</option>
-          <option value="PA">PA — Pará</option>
-          <option value="ES">ES — Espírito Santo</option>
+        <div class="admin-lbl">Estado</div>
+        <select class="admin-field" id="bUF">
+          <option value="MG">MG — Minas Gerais</option><option value="SP">SP — São Paulo</option>
+          <option value="RJ">RJ — Rio de Janeiro</option><option value="RS">RS — Rio Grande do Sul</option>
+          <option value="PR">PR — Paraná</option><option value="SC">SC — Santa Catarina</option>
+          <option value="GO">GO — Goiás</option><option value="BA">BA — Bahia</option>
+          <option value="PE">PE — Pernambuco</option><option value="CE">CE — Ceará</option>
+          <option value="MT">MT — Mato Grosso</option><option value="MS">MS — Mato Grosso do Sul</option>
+          <option value="PA">PA — Pará</option><option value="ES">ES — Espírito Santo</option>
           <option value="DF">DF — Distrito Federal</option>
         </select>
       </div>
       <div>
-        <div class="busca-label">Cidade</div>
-        <input class="field" id="fCidade" placeholder="Ex: Belo Horizonte">
+        <div class="admin-lbl">Cidade (opcional)</div>
+        <input class="admin-field" id="bMunicipio" placeholder="Ex: Belo Horizonte">
       </div>
       <div>
-        <div class="busca-label">Nicho</div>
-        <select class="field" id="fNicho"><option value="">Todos os nichos</option></select>
-      </div>
-      <div>
-        <div class="busca-label">Regime</div>
-        <select class="field" id="fRegime"><option value="">Todos os regimes</option></select>
-      </div>
-      <div>
-        <div class="busca-label">Porte</div>
-        <select class="field" id="fPorte">
-          <option value="">Todos os portes</option>
-          <option value="DEMAIS">DEMAIS — Grande</option>
-          <option value="EPP">EPP — Pequena</option>
-          <option value="ME">ME — Micro</option>
-        </select>
-      </div>
-      <div>
-        <div class="busca-label">Dívida Ativa</div>
-        <select class="field" id="fDivida">
-          <option value="">Com ou sem dívida</option>
-          <option value="sim">✅ Com dívida ativa</option>
-          <option value="nao">❌ Sem dívida</option>
-        </select>
-      </div>
-      <div>
-        <div class="busca-label">Score mínimo</div>
-        <select class="field" id="fScore">
-          <option value="">Qualquer score</option>
-          <option value="9">🔥 9+ Muito quente</option>
-          <option value="7">✅ 7+ Quente</option>
-          <option value="5">⏳ 5+ Morno</option>
-        </select>
-      </div>
-      <div>
-        <div class="busca-label">Status</div>
-        <select class="field" id="fStatus">
-          <option value="disponivel">Disponíveis</option>
-          <option value="todos">Todos (incl. usados)</option>
-          <option value="usado">Já abordados</option>
-        </select>
-      </div>
-      <div>
-        <div class="busca-label">Busca livre</div>
-        <input class="field" id="busca" placeholder="Empresa, decisor, CNPJ...">
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap">
-      <button class="btn-buscar" id="btnBuscarLeads">🎯 Buscar Leads</button>
-      <button class="btn-buscar" id="btnVerTudo" style="background:transparent;border:1px solid var(--gold-brd);color:var(--gold)">📋 Ver tudo no banco</button>
-      <span id="sheet-status" style="font-size:12px;color:var(--muted)"></span>
-    </div>
-  </div>
-
-  <!-- KPIs -->
-  <div class="grid4" id="kpiArea" style="display:none">
-    <div class="kpi"><div class="label">Encontrados</div><div class="num" id="kTotal">0</div></div>
-    <div class="kpi hot"><div class="label">🔥 Muito quentes</div><div class="num" id="kHot">0 <small>score 9+</small></div></div>
-    <div class="kpi"><div class="label">Com Dívida Ativa</div><div class="num" id="kDivida">0</div></div>
-    <div class="kpi"><div class="label">Porte DEMAIS</div><div class="num" id="kDemais">0</div></div>
-  </div>
-
-  <!-- Cards -->
-  <div class="panel" id="cardsArea" style="display:none">
-    <div class="section-title">
-      Leads encontrados
-      <span id="countLbl" style="color:var(--muted);font-weight:400;font-size:12px;margin-left:8px"></span>
-    </div>
-    <div class="cards-grid" id="cards"></div>
-    <div class="empty" id="empty" style="display:none">
-      <div class="ei">🔍</div>
-      Nenhum lead encontrado com esses filtros. Tente ampliar os critérios ou carregar mais dados na base.
-    </div>
-  </div>
-
-  <!-- Estado inicial -->
-  <div id="estadoInicial" class="panel" style="text-align:center;padding:50px 20px">
-    <div style="font-size:40px;margin-bottom:12px">🎯</div>
-    <div style="font-size:16px;font-weight:700;margin-bottom:8px">Configure os filtros e clique em Buscar</div>
-    <div style="font-size:13px;color:var(--muted)">Escolha a quantidade, estado, nicho e critérios — o sistema traz os leads mais qualificados do banco, ordenados por score.</div>
-  </div>
-
-  <!-- ═══ LEADS QUALIFICADOS — 3 abas por produto ═══ -->
-  <div class="panel" id="leadsQualPanel" style="margin-top:24px">
-    <div class="section-title" style="margin-bottom:4px">
-      ⭐ Leads Qualificados
-      <span style="font-size:11px;background:rgba(201,162,39,.15);color:var(--gold);border-radius:20px;padding:2px 10px;font-weight:600;margin-left:6px">CNPJá Enriquecidos</span>
-    </div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Leads que passaram pelo enriquecimento completo — decisor real, contato verificado, PGFN exato. Uma empresa pode aparecer em mais de uma aba.</p>
-
-    <div class="tab-nav">
-      <button class="tab-btn active" id="tabBtn-recuperacao" onclick="mostrarTab('recuperacao')">
-        💰 Recuperação <span class="tab-badge" id="tCount-recuperacao">—</span>
-      </button>
-      <button class="tab-btn" id="tabBtn-holding" onclick="mostrarTab('holding')">
-        🏛 Holding <span class="tab-badge" id="tCount-holding">—</span>
-      </button>
-      <button class="tab-btn" id="tabBtn-reforma" onclick="mostrarTab('reforma')">
-        📋 Reforma <span class="tab-badge" id="tCount-reforma">—</span>
-      </button>
-      <button class="tab-refresh" onclick="carregarLeadsQualificados()">↻ Atualizar</button>
-      <span id="leadsQualStatus" style="font-size:12px;color:var(--muted)"></span>
-    </div>
-
-    <div id="tab-recuperacao" class="tab-content active">
-      <div class="tab-empty">⏳ Carregando leads...</div>
-    </div>
-    <div id="tab-holding" class="tab-content">
-      <div class="tab-empty">⏳ Carregando leads...</div>
-    </div>
-    <div id="tab-reforma" class="tab-content">
-      <div class="tab-empty">⏳ Carregando leads...</div>
-    </div>
-  </div>
-
-  <!-- ═══ PASSO 1: CARREGAR BASE GRÁTIS ═══ -->
-  <div class="busca-panel" style="margin-top:24px">
-    <div class="section-title" style="margin-bottom:4px">
-      📥 Passo 1 — Carregar Base <span style="font-size:11px;background:rgba(34,197,94,.15);color:var(--green);border-radius:20px;padding:2px 10px;font-weight:600;margin-left:6px">GRATUITO</span>
-    </div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Receita Federal via Brasil.io — sem consumir créditos CNPJá. Filtra EPP/DEMAIS com 5+ anos automaticamente.</p>
-    <div class="busca-grid">
-      <div>
-        <div class="busca-label">Estado (UF)</div>
-        <select class="field" id="bUF">
-          <option value="MG">MG — Minas Gerais</option>
-          <option value="SP">SP — São Paulo</option>
-          <option value="RJ">RJ — Rio de Janeiro</option>
-          <option value="RS">RS — Rio Grande do Sul</option>
-          <option value="PR">PR — Paraná</option>
-          <option value="SC">SC — Santa Catarina</option>
-          <option value="GO">GO — Goiás</option>
-          <option value="BA">BA — Bahia</option>
-          <option value="PE">PE — Pernambuco</option>
-          <option value="CE">CE — Ceará</option>
-          <option value="MT">MT — Mato Grosso</option>
-          <option value="MS">MS — Mato Grosso do Sul</option>
-          <option value="PA">PA — Pará</option>
-          <option value="ES">ES — Espírito Santo</option>
-          <option value="DF">DF — Distrito Federal</option>
-        </select>
-      </div>
-      <div>
-        <div class="busca-label">Cidade (opcional)</div>
-        <input class="field" id="bMunicipio" placeholder="Ex: Belo Horizonte">
-      </div>
-      <div>
-        <div class="busca-label">Porte</div>
-        <select class="field" id="bPorte">
+        <div class="admin-lbl">Porte</div>
+        <select class="admin-field" id="bPorte">
           <option value="">EPP + DEMAIS</option>
-          <option value="05">Apenas DEMAIS (grandes)</option>
+          <option value="05">Apenas DEMAIS</option>
           <option value="03">Apenas EPP</option>
         </select>
       </div>
       <div>
-        <div class="busca-label">Quantidade</div>
-        <select class="field" id="bLimite">
+        <div class="admin-lbl">Quantidade</div>
+        <select class="admin-field" id="bLimite">
           <option value="300">300 empresas</option>
           <option value="500">500 empresas</option>
-          <option value="1000" selected>1000 empresas</option>
-          <option value="2000">2000 empresas</option>
+          <option value="1000" selected>1.000 empresas</option>
+          <option value="2000">2.000 empresas</option>
         </select>
       </div>
     </div>
-    <button class="btn-buscar" id="btnExtrair" style="margin-top:16px">📥 Carregar Base Grátis</button>
-    <div class="busca-status" id="buscaStatus"></div>
+    <button class="btn-action" id="btnExtrair">📥 Carregar Base Grátis</button>
+    <div class="status-msg" id="buscaStatus"></div>
   </div>
 
-  <!-- ═══ PASSO 2: ENRIQUECER TOP N ═══ -->
-  <div class="busca-panel" style="margin-top:16px;border-color:rgba(201,162,39,.5)">
-    <div class="section-title" style="margin-bottom:4px">
-      🚀 Passo 2 — Enriquecer com CNPJá <span style="font-size:11px;background:rgba(201,162,39,.15);color:var(--gold);border-radius:20px;padding:2px 10px;font-weight:600;margin-left:6px">1 CRÉDITO / EMPRESA</span>
-    </div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Pega as melhores empresas da base pelo perfil selecionado e busca dados completos: decisor real, PGFN exato, email, capital. Salva na aba Leads.</p>
-    <div class="busca-grid">
+  <!-- Passo 2 -->
+  <div class="admin-section" style="border-top:1px solid var(--line);padding-top:22px">
+    <div class="admin-title">🚀 Passo 2 — Enriquecer Top Leads <span style="font-size:10px;background:rgba(201,162,39,.15);color:var(--gold);border-radius:20px;padding:2px 8px;margin-left:6px">1 CRÉDITO / EMPRESA</span></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Pega as melhores empresas do banco e busca dados completos: decisor real, celular, PGFN exato, email. Salva nas abas acima.</p>
+    <div class="admin-grid">
       <div>
-        <div class="busca-label">Produto</div>
-        <select class="field" id="eProduto">
+        <div class="admin-lbl">Produto</div>
+        <select class="admin-field" id="eProduto">
           <option value="recuperacao">💰 Recuperação Tributária</option>
           <option value="holding">🏛 Holding Familiar</option>
           <option value="reforma">📋 Reforma Tributária</option>
         </select>
       </div>
       <div>
-        <div class="busca-label">Quantidade a enriquecer</div>
-        <select class="field" id="eQtd">
+        <div class="admin-lbl">Quantidade</div>
+        <select class="admin-field" id="eQtd">
           <option value="5">5 empresas (5 créditos)</option>
           <option value="10" selected>10 empresas (10 créditos)</option>
           <option value="20">20 empresas (20 créditos)</option>
-          <option value="44">44 — usar saldo atual</option>
+          <option value="30">30 empresas (30 créditos)</option>
         </select>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap">
-      <button class="btn-buscar" id="btnEnriquecerLote">🚀 Enriquecer Top Leads</button>
-      <span style="font-size:12px;color:var(--muted)">Os leads enriquecidos aparecem ao buscar normalmente acima</span>
-    </div>
-    <div class="busca-status" id="enrichStatus"></div>
+    <button class="btn-action" id="btnEnriquecer">🚀 Enriquecer Top Leads</button>
+    <div class="status-msg" id="enrichStatus"></div>
   </div>
 
-  <div class="page-foot">SAVE Inteligência Tributária — Dados via Receita Federal + CNPJá</div>
 </div>
 
 <script>
-// ====== CONFIG ======
-const SHEET_ID = '1Lh0MapbRVgZTahrfQSMhAPxBqhRJtsSVj1yg7vFrApQ';
-const API_KEY  = 'AIzaSyCoCWZfX31nCagR8c0yZfIUDz7KvZScU00';
-const SHEETS_BASE_URL   = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/base_empresas?key=${API_KEY}`;
-const WEBHOOK_ENRIQUECER_URL  = 'https://rodrigopires.app.n8n.cloud/webhook/enriquecer-lead';
-const WEBHOOK_MARCAR_URL      = 'https://rodrigopires.app.n8n.cloud/webhook/marcar-lead';
-const WEBHOOK_EXTRAIR_URL     = 'https://rodrigopires.app.n8n.cloud/webhook/extrair-brasil';
-const WEBHOOK_ENRICH_LOTE_URL = 'https://rodrigopires.app.n8n.cloud/webhook/enriquecer-lote';
+// ── Config ──
+const SHEET_ID  = '1Lh0MapbRVgZTahrfQSMhAPxBqhRJtsSVj1yg7vFrApQ';
+const API_KEY   = 'AIzaSyCoCWZfX31nCagR8c0yZfIUDz7KvZScU00';
+const LEADS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Leads?key=${API_KEY}`;
+const BASE_URL  = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/base_empresas?key=${API_KEY}`;
+const WH_EXTRAIR  = 'https://rodrigopires.app.n8n.cloud/webhook/extrair-brasil';
+const WH_ENRICH   = 'https://rodrigopires.app.n8n.cloud/webhook/enriquecer-lote';
+const WH_MARCAR   = 'https://rodrigopires.app.n8n.cloud/webhook/marcar-lead';
 
 const $ = s => document.querySelector(s);
 
-let ALL_LEADS    = [];
-let LOADED       = false;
-let PRODUTO_ATIVO = 'recuperacao';
+// ── State ──
+let LEADS = { recuperacao:[], holding:[], reforma:[] };
+let TAB   = 'recuperacao';
+let NICHOS_MAP = {};
 
-// ====== PERFIS DE PRODUTO ======
+// ── Helpers ──
+const tt  = s => s?(s+'').toLowerCase().replace(/(?:^|\s|-)\S/g,c=>c.toUpperCase()):'';
+const fmtV = v => v ? 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0}) : '';
+const fmtVS = v => { if(!v)return''; if(v>=1e6)return'R$ '+(v/1e6).toFixed(1).replace('.',',')+'M'; if(v>=1e3)return'R$ '+(v/1e3).toFixed(0)+'mil'; return fmtV(v); };
+const norm  = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const bools = v => ['true','TRUE','1','sim','SIM','Sim'].includes(v);
+const sc_class  = s => s>=9?'sb-hot':s>=7?'sb-warm':'sb-cold';
+const sc_strip  = s => s>=9?'strip-hot':s>=7?'strip-warm':'strip-cold';
+
 const PRODUTOS = {
-  recuperacao: {
-    label: '💰 Recuperação Tributária',
-    desc: 'Prioriza empresas que pagaram muito imposto e têm créditos a recuperar. Foco em Lucro Real/Presumido com 5+ anos e capital relevante.',
-    filtros: { fRegime: '', fPorte: '', fDivida: '' },
-    score(l) {
-      let p = 0;
-      // Regime é o critério mais importante
-      if ((l.regime||'').includes('Real'))       p += 3.0;
-      else if ((l.regime||'').includes('Presumido')) p += 2.5;
-      else return 0; // Simples/MEI não qualifica
-      // Tempo de mercado (quanto mais anos, mais crédito acumulado)
-      if (l.empresa_anos >= 15)      p += 2.5;
-      else if (l.empresa_anos >= 10) p += 2.0;
-      else if (l.empresa_anos >= 5)  p += 1.0;
-      else return 0; // menos de 5 anos não qualifica
-      // Porte
-      if (l.porte === 'DEMAIS')      p += 2.0;
-      else if (l.porte === 'EPP')    p += 1.0;
-      // Capital (indica volume de imposto pago)
-      if (l.capital >= 5000000)      p += 1.5;
-      else if (l.capital >= 500000)  p += 0.75;
-      else if (l.capital >= 100000)  p += 0.25;
-      // Contato
-      if (l.telefone) p += 0.5;
-      if (l.email)    p += 0.5;
-      // Dívida ativa é bônus (abre porta de regularização)
-      if (l.divida_ativa) p += 0.5;
-      return Math.min(10, Math.round(p * 10) / 10);
+  recuperacao:{
+    score(l){
+      let p=0;
+      if((l.regime||'').includes('Real'))p+=3;
+      else if((l.regime||'').includes('Presumido'))p+=2.5;
+      else return 0;
+      if(l.empresa_anos>=15)p+=2.5;
+      else if(l.empresa_anos>=10)p+=2;
+      else if(l.empresa_anos>=5)p+=1;
+      else return 0;
+      if(l.porte==='DEMAIS')p+=2; else if(l.porte==='EPP')p+=1;
+      if(l.capital>=5e6)p+=1.5; else if(l.capital>=5e5)p+=0.75;
+      if(l.telefone)p+=0.5; if(l.email)p+=0.5;
+      if(l.divida_ativa)p+=0.5;
+      return Math.min(10,Math.round(p*10)/10);
     }
   },
-  holding: {
-    label: '🏛 Holding Familiar',
-    desc: 'Prioriza empresas com múltiplos sócios, capital alto e anos de mercado. Ideal para planejamento sucessório e proteção patrimonial.',
-    filtros: { fRegime: '', fPorte: '', fDivida: '' },
-    score(l) {
-      let p = 0;
-      // Sócios (estrutura familiar = necessidade de holding)
-      if (l.qtd_socios >= 4)       p += 3.0;
-      else if (l.qtd_socios >= 2)  p += 2.0;
-      else if (l.qtd_socios === 1) p += 0.5;
-      // Tempo de mercado (patrimônio acumulado)
-      if (l.empresa_anos >= 20)      p += 2.5;
-      else if (l.empresa_anos >= 10) p += 2.0;
-      else if (l.empresa_anos >= 5)  p += 1.0;
-      else return 0; // menos de 5 anos não qualifica
-      // Capital (patrimônio a proteger)
-      if (l.capital >= 10000000)    p += 2.5;
-      else if (l.capital >= 5000000) p += 2.0;
-      else if (l.capital >= 500000)  p += 1.0;
-      // Porte
-      if (l.porte === 'DEMAIS')     p += 1.0;
-      else if (l.porte === 'EPP')   p += 0.5;
-      // Contato
-      if (l.telefone) p += 0.5;
-      if (l.email)    p += 0.5;
-      // Sem dívida é melhor para holding
-      if (!l.divida_ativa) p += 0.5;
-      return Math.min(10, Math.round(p * 10) / 10);
+  holding:{
+    score(l){
+      let p=0;
+      if(l.qtd_socios>=4)p+=3; else if(l.qtd_socios>=2)p+=2; else p+=0.5;
+      if(l.empresa_anos>=10)p+=2; else if(l.empresa_anos>=5)p+=1; else return 0;
+      if(l.capital>=1e7)p+=2.5; else if(l.capital>=5e6)p+=2; else if(l.capital>=5e5)p+=1;
+      if(l.porte==='DEMAIS')p+=1; else if(l.porte==='EPP')p+=0.5;
+      if(l.telefone)p+=0.5; if(l.email)p+=0.5;
+      if(!l.divida_ativa)p+=0.5;
+      return Math.min(10,Math.round(p*10)/10);
     }
   },
-  reforma: {
-    label: '📋 Reforma Tributária',
-    desc: 'Prioriza empresas com alto volume de operações que serão mais impactadas pela transição para IBS/CBS. Foco em comércio e indústria.',
-    filtros: { fRegime: '', fPorte: 'DEMAIS', fDivida: '' },
-    score(l) {
-      let p = 0;
-      // Regime — não pode ser MEI/Simples
-      if ((l.regime||'').includes('Real'))           p += 2.5;
-      else if ((l.regime||'').includes('Presumido')) p += 2.0;
+  reforma:{
+    score(l){
+      let p=0;
+      if((l.regime||'').includes('Real'))p+=2.5;
+      else if((l.regime||'').includes('Presumido'))p+=2;
       else return 0;
-      // Porte — quanto maior, maior o impacto da reforma
-      if (l.porte === 'DEMAIS')    p += 3.0;
-      else if (l.porte === 'EPP')  p += 1.5;
-      // Tempo de mercado
-      if (l.empresa_anos >= 10)    p += 2.0;
-      else if (l.empresa_anos >= 5) p += 1.0;
-      else return 0;
-      // Capital
-      if (l.capital >= 5000000)    p += 1.5;
-      else if (l.capital >= 500000) p += 0.5;
-      // Contato
-      if (l.telefone) p += 0.5;
-      if (l.email)    p += 0.5;
-      return Math.min(10, Math.round(p * 10) / 10);
+      if(l.porte==='DEMAIS')p+=3; else if(l.porte==='EPP')p+=1.5;
+      if(l.empresa_anos>=10)p+=2; else if(l.empresa_anos>=5)p+=1; else return 0;
+      if(l.capital>=5e6)p+=1.5; else if(l.capital>=5e5)p+=0.5;
+      if(l.telefone)p+=0.5; if(l.email)p+=0.5;
+      return Math.min(10,Math.round(p*10)/10);
     }
   }
 };
 
-// ====== TROCAR PRODUTO ======
-function setProduto(p) {
-  PRODUTO_ATIVO = p;
-  document.querySelectorAll('.btn-produto').forEach(b => b.classList.remove('active'));
-  document.getElementById('prod-'+p).classList.add('active');
-  const prod = PRODUTOS[p];
-  document.getElementById('produtoDesc').innerHTML =
-    `<strong style="color:var(--gold)">${prod.label}:</strong> ${prod.desc}`;
-  // aplica filtros padrão do produto
-  Object.entries(prod.filtros).forEach(([id, val]) => {
-    const el = document.getElementById(id);
-    if (el) el.value = val;
-  });
-  // recalcula scores com novo perfil
-  if (LOADED) {
-    ALL_LEADS.forEach(l => { l.score_final = l.score_ia || PRODUTOS[PRODUTO_ATIVO].score(l); });
-  }
-}
-
-// ====== SCORE LOCAL (usa perfil ativo) ======
-function calcScore(l) {
-  return PRODUTOS[PRODUTO_ATIVO].score(l);
-}
-
-// ====== PARSE PLANILHA ======
-function toTitleCase(s){ return s?(s+'').toLowerCase().replace(/(?:^|\s|-)\S/g,c=>c.toUpperCase()):''; }
-function fmtValor(v){ return v?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0}):''; }
-function fmtValorSimples(v){ if(!v) return ''; if(v>=1000000) return 'R$ '+(v/1000000).toFixed(1).replace('.',',')+'M'; if(v>=1000) return 'R$ '+(v/1000).toFixed(0)+'mil'; return fmtValor(v); }
-function scoreClass(s){ return s>=9?'sb-hot':s>=7?'sb-warm':'sb-cold'; }
-function stripClass(s){ return s>=9?'strip-hot':s>=7?'strip-warm':'strip-cold'; }
-
-function parseSheetRows(rows){
+// ── Parse Leads sheet ──
+function parseLeads(rows){
   if(!rows||rows.length<2) return [];
-  const headers = rows[0].map(h=>h.trim().toLowerCase()
+  const h = rows[0].map(x=>x.trim().toLowerCase()
     .replace(/\s+/g,'_').replace(/[áàã]/g,'a').replace(/[éê]/g,'e')
     .replace(/[íî]/g,'i').replace(/[óôõ]/g,'o').replace(/[úû]/g,'u').replace(/ç/g,'c'));
   return rows.slice(1).map(row=>{
-    const o={};
-    headers.forEach((h,i)=>{ o[h]=row[i]||''; });
-    const bools = v => ['true','TRUE','1','sim','SIM','Sim','yes','YES'].includes(v);
-    const l = {
-      empresa:       toTitleCase(o.empresa||''),
-      fantasia:      toTitleCase(o.fantasia||o.empresa||''),
-      cnpj:          o.cnpj||'',
-      nicho:         o.nicho||'',
-      atividades_sec:o.atividades_sec||'',
-      regime:        o.regime||'',
-      porte:         o.porte||'',
-      cidade:        o.cidade||'',
-      bairro:        o.bairro||'',
-      cep:           o.cep||'',
-      endereco:      o.endereco||'',
-      empresa_anos:  parseInt(o.empresa_anos)||0,
-      capital:       parseFloat((o.capital||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
-      ie:            o.ie||'',
-      telefone:      o.telefone||'',
-      telefones:     o.telefones||'',
-      email:         o.email||'',
-      emails_todos:  o.emails_todos||'',
-      decisor:       toTitleCase(o.decisor||''),
-      decisor_cargo: o.decisor_cargo||'',
-      socios_lista:  o.socios_lista||'',
-      qtd_socios:    parseInt(o.qtd_socios)||0,
-      site:          o.site||'',
-      divida_ativa:  bools(o.divida_ativa),
-      divida_valor:  parseFloat((o.divida_valor||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
-      google_presente: bools(o.google_presente),
-      google_resultados: parseInt(o.google_resultados)||0,
-      linkedin_url:  o.linkedin_url||o.linkedin||'',
-      abordagem:     o.abordagem||o.texto_abordagem||'',
-      score_ia:      parseInt(o.score_final)||parseInt(o.score)||0,
-      status:        o.status||'disponivel',
-      uf:            o.uf||o.estado||o.state||o.address_state||o.municipio_uf||o.sigla_uf||'',
-      data_captura:  o.data_extracao||o.data_captura||''
+    const o={}; h.forEach((k,i)=>{o[k]=row[i]||'';});
+    const l={
+      empresa:      tt(o.empresa||''),
+      cnpj:         o.cnpj||'',
+      nicho:        o.nicho||'',
+      regime:       o.regime||'',
+      porte:        o.porte||'',
+      cidade:       o.cidade||'',
+      uf:           o.uf||o.estado||'',
+      empresa_anos: parseInt(o.empresa_anos)||0,
+      capital:      parseFloat((o.capital||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
+      telefone:     o.telefone||'',
+      telefones:    o.telefones||'',
+      email:        o.email||'',
+      emails_todos: o.emails_todos||'',
+      decisor:      tt(o.decisor||''),
+      decisor_cargo:o.decisor_cargo||'',
+      socios_lista: o.socios_lista||'',
+      qtd_socios:   parseInt(o.qtd_socios)||0,
+      site:         o.site||'',
+      linkedin_url: o.linkedin_url||o.linkedin||'',
+      divida_ativa: bools(o.divida_ativa),
+      divida_valor: parseFloat((o.divida_valor||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
+      abordagem:    o.abordagem||o.texto_abordagem||'',
+      score_final:  parseFloat(o.score_final||o.score)||0,
+      produto:      (o.produto||'recuperacao').toLowerCase(),
+      status:       o.status||'disponivel',
+      data_captura: o.data_extracao||o.data_captura||''
     };
-    // extrai UF da cidade se não vier em campo próprio (suporta "Belo Horizonte/MG" ou "MG/Belo Horizonte")
-    if(!l.uf && l.cidade) {
-      const parts = l.cidade.split('/');
-      if(parts.length >= 2) {
-        // testa qual parte é a sigla (2 letras maiúsculas)
-        const sigla = parts.map(p=>p.trim()).find(p=>/^[A-Z]{2}$/.test(p.toUpperCase()));
-        if(sigla) l.uf = sigla.toUpperCase();
-      }
+    if(!l.uf&&l.cidade){
+      const parts=l.cidade.split('/');
+      if(parts.length>=2){const sig=parts.map(p=>p.trim()).find(p=>/^[A-Z]{2}$/i.test(p));if(sig)l.uf=sig.toUpperCase();}
     }
-    // fallback: procura qualquer campo de 2 letras que pareça UF
-    if(!l.uf) {
-      const candidatos = ['uf','estado','state','address_state','municipio_uf','sigla','sigla_uf','uf_empresa'];
-      for(const c of candidatos) { if(o[c]&&/^[A-Z]{2}$/i.test(o[c].trim())){ l.uf=o[c].trim().toUpperCase(); break; } }
-    }
-    // gera abordagem padrão se não vier da planilha
-    if(!l.abordagem) {
-      const nome = l.decisor ? l.decisor.split(' ')[0] : 'tudo bem';
-      const divida = l.divida_ativa ? ` Identificamos também uma pendência junto à Receita Federal${l.divida_valor?' no valor de '+fmtValorSimples(l.divida_valor):''} — podemos ajudar com uma estratégia de regularização.` : '';
-      l.abordagem = `Olá ${nome}! Sou da SAVE Inteligência Tributária. Analisamos o perfil fiscal da ${l.empresa} e identificamos oportunidades de redução de carga tributária para empresas do seu porte no regime ${(l.regime||'').replace('Lucro ','')}.${divida} Posso apresentar um diagnóstico gratuito?`;
-    }
-    // score_final: usa IA se disponível, senão calcula local
-    l.score_final = l.score_ia || calcScore(l);
+    if(!l.score_final) l.score_final = PRODUTOS[l.produto]?.score(l)||0;
     return l;
   }).filter(l=>l.empresa);
 }
 
-// ====== CARREGAR DADOS ======
-async function carregarBase() {
-  const statusEl = $('#sheet-status');
-  statusEl.textContent = '⏳ Conectando ao banco de dados...';
-  statusEl.style.color = 'var(--muted)';
-  try {
-    const res = await fetch(SHEETS_BASE_URL, {mode:'cors'});
+// ── Carregar Leads ──
+async function carregarLeads(){
+  $('#loadingState').style.display='block';
+  $('#emptyState').style.display='none';
+  $('#cardsGrid').innerHTML='';
+  $('#syncStatus').textContent='⏳ Sincronizando...';
+  try{
+    const res = await fetch(LEADS_URL,{mode:'cors'});
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
-    ALL_LEADS = parseSheetRows(data.values||[]);
-    LOADED = true;
-    // preenche filtros dinâmicos
-    const nichos = [...new Set(ALL_LEADS.map(l=>l.nicho).filter(Boolean))].sort();
-    $('#fNicho').innerHTML = '<option value="">Todos os nichos</option>' + nichos.map(n=>`<option>${n}</option>`).join('');
-    const regimes = [...new Set(ALL_LEADS.map(l=>l.regime).filter(Boolean))].sort();
-    $('#fRegime').innerHTML = '<option value="">Todos os regimes</option>' + regimes.map(r=>`<option>${r}</option>`).join('');
-    statusEl.textContent = ALL_LEADS.length
-      ? `✅ ${ALL_LEADS.length} empresas no banco — pronto para buscar`
-      : '📋 Banco vazio — use o painel abaixo para carregar dados';
-    // recalcula scores com perfil ativo
-    ALL_LEADS.forEach(l => { l.score_final = l.score_ia || PRODUTOS[PRODUTO_ATIVO].score(l); });
-    statusEl.style.color = ALL_LEADS.length ? 'var(--green)' : 'var(--muted)';
-  } catch(e) {
-    statusEl.textContent = '⚠️ Sem conexão com o banco de dados';
-    statusEl.style.color = 'var(--amber)';
+    const todos = parseLeads(data.values||[]);
+    LEADS.recuperacao = todos.filter(l=>l.produto==='recuperacao').sort((a,b)=>b.score_final-a.score_final);
+    LEADS.holding     = todos.filter(l=>l.produto==='holding').sort((a,b)=>b.score_final-a.score_final);
+    LEADS.reforma     = todos.filter(l=>l.produto==='reforma').sort((a,b)=>b.score_final-a.score_final);
+    // Nichos únicos
+    const allNichos = [...new Set(todos.map(l=>l.nicho).filter(Boolean))].sort();
+    $('#fNicho').innerHTML = '<option value="">Todos os nichos</option>'+allNichos.map(n=>`<option>${n}</option>`).join('');
+    // Atualiza contadores
+    ['recuperacao','holding','reforma'].forEach(p=>{
+      const lst=LEADS[p];
+      $('#pcount-'+p).textContent=lst.length||'0';
+      const hot=lst.filter(l=>l.score_final>=9).length;
+      $('#phot-'+p).textContent=hot?`🔥 ${hot} muito quentes`:'';
+    });
+    $('#syncStatus').textContent=`✅ ${todos.length} leads`;
+    $('#syncStatus').style.color='var(--green)';
+  }catch(e){
+    $('#syncStatus').textContent='⚠️ Erro ao carregar';
+    $('#syncStatus').style.color='var(--amber)';
+  }finally{
+    $('#loadingState').style.display='none';
+    filtrar();
   }
 }
 
-// ====== BUSCAR LEADS ======
-function buscarLeads() {
-  if(!LOADED){ alert('Aguarde o banco de dados carregar.'); return; }
-
-  const qtd  = parseInt($('#fQtd').value) || 20;
-  const uf   = $('#fUF').value;
-  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-  const cid  = norm($('#fCidade').value.trim());
-  const ni   = $('#fNicho').value;
-  const rg   = $('#fRegime').value;
-  const pt   = $('#fPorte').value;
-  const div  = $('#fDivida').value;
-  const sc   = parseInt($('#fScore').value)||0;
-  const st   = $('#fStatus').value;
-  const q    = $('#busca').value.toLowerCase();
-
-  let results = ALL_LEADS.filter(l => {
-    if(uf  && l.uf !== uf) return false;
-    if(cid && !norm(l.cidade).includes(cid))            return false;
-    if(ni  && l.nicho !== ni)                           return false;
-    if(rg  && l.regime !== rg)                          return false;
-    if(pt  && l.porte !== pt)                           return false;
-    if(div === 'sim' && !l.divida_ativa)                return false;
-    if(div === 'nao' && l.divida_ativa)                 return false;
-    if(sc  && l.score_final < sc)                       return false;
-    if(st === 'disponivel' && l.status === 'usado')     return false;
-    if(st === 'usado'      && l.status !== 'usado')     return false;
-    if(q   && !(l.empresa+l.fantasia+l.decisor+l.cidade+l.cnpj+(l.socios_lista||'')).toLowerCase().includes(q)) return false;
+// ── Filtrar ──
+function filtrar(){
+  const cidade = norm($('#fCidade').value.trim());
+  const nicho  = $('#fNicho').value;
+  const minSc  = parseInt($('#fScore').value)||0;
+  const st     = $('#fStatus').value;
+  let lista = LEADS[TAB].filter(l=>{
+    if(cidade && !norm(l.cidade+' '+l.uf).includes(cidade)) return false;
+    if(nicho  && l.nicho !== nicho) return false;
+    if(minSc  && l.score_final < minSc) return false;
+    if(st==='disponivel' && l.status==='usado') return false;
+    if(st==='usado'      && l.status!=='usado') return false;
     return true;
   });
-
-  // ordena: dívida+score primeiro
-  results.sort((a,b) => {
-    const da = (b.divida_ativa?10:0) + b.score_final;
-    const db = (a.divida_ativa?10:0) + a.score_final;
-    return da - db;
-  });
-
-  // limita à quantidade escolhida
-  results = results.slice(0, qtd);
-
-  // mostra resultado
-  $('#estadoInicial').style.display = 'none';
-  $('#kpiArea').style.display = 'grid';
-  $('#cardsArea').style.display = 'block';
-
-  $('#kTotal').textContent  = results.length;
-  $('#kHot').innerHTML      = results.filter(l=>l.score_final>=9).length + ' <small>score 9+</small>';
-  $('#kDivida').textContent = results.filter(l=>l.divida_ativa).length;
-  $('#kDemais').textContent = results.filter(l=>l.porte==='DEMAIS').length;
-  $('#countLbl').textContent = `${results.length} de ${qtd} solicitados`;
-
-  // distribuição de scores
-  const s9 = results.filter(l=>l.score_final>=9).length;
-  const s7 = results.filter(l=>l.score_final>=7&&l.score_final<9).length;
-  const s5 = results.filter(l=>l.score_final>=5&&l.score_final<7).length;
-  const s0 = results.filter(l=>l.score_final<5).length;
-  const totalBase = ALL_LEADS.length;
-  const totalFiltro = ALL_LEADS.filter(l=>{
-    if($('#fUF').value && l.uf !== $('#fUF').value) return false;
-    if(cid && !norm(l.cidade).includes(cid)) return false;
-    if($('#fNicho').value && l.nicho !== $('#fNicho').value) return false;
-    if($('#fPorte').value && l.porte !== $('#fPorte').value) return false;
-    return true;
-  }).length;
-  document.getElementById('scoreDist') && document.getElementById('scoreDist').remove();
-  const dist = document.createElement('div');
-  dist.id = 'scoreDist';
-  dist.style.cssText = 'font-size:12px;color:var(--muted);margin:8px 0 0;display:flex;gap:14px;flex-wrap:wrap;align-items:center';
-  dist.innerHTML = `<span>No banco: <strong style="color:var(--txt)">${totalBase}</strong> empresas</span><span style="color:var(--line)">|</span><span>Com seus filtros: <strong style="color:var(--txt)">${totalFiltro}</strong></span><span style="color:var(--line)">|</span><span>🔥 Score 9+: <strong style="color:var(--gold)">${s9}</strong></span><span>✅ 7-8: <strong style="color:#4ade80">${s7}</strong></span><span>⏳ 5-6: <strong>${s5}</strong></span><span>❄️ &lt;5: <strong>${s0}</strong></span>`;
-  $('#kpiArea').after(dist);
-
-  if(!results.length){
-    $('#cards').innerHTML='';
-    $('#empty').style.display='block';
-    $('#empty').innerHTML = `
-      <div class="ei">🔍</div>
-      <strong>Nenhum lead encontrado com esses filtros.</strong><br><br>
-      <div style="font-size:13px;color:var(--muted);max-width:480px;margin:0 auto;text-align:left">
-        <b style="color:var(--txt)">Diagnóstico:</b><br>
-        • Total no banco: <b style="color:var(--gold)">${ALL_LEADS.length} empresas</b><br>
-        • Clique em <b>"📋 Ver tudo no banco"</b> para ver o que há sem filtros<br>
-        • Se o banco estiver vazio, use o painel abaixo para <b>Carregar na Base</b> primeiro<br>
-        • Tente remover filtros de Estado, Cidade ou Score
-      </div>`;
-  } else {
-    $('#empty').style.display='none';
-    $('#cards').innerHTML = results.map(buildCard).join('');
-  }
-
-  // scroll suave para os resultados
-  $('#kpiArea').scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-// ====== BUILD CARD ======
-function buildCard(l){
-  const sc = l.score_final;
-  const wa = l.telefone
-    ? `https://wa.me/55${l.telefone.replace(/\D/g,'')}?text=${encodeURIComponent((l.abordagem||'Olá '+l.decisor.split(' ')[0]+', tudo bem?'))}`
-    : '';
-  const linkedinHref = l.linkedin_url
-    ? (l.linkedin_url.startsWith('http')?l.linkedin_url:'https://'+l.linkedin_url)
-    : '';
-  return `
-  <div class="lead-card ${sc>=9?'very-hot':''}">
-    <div class="card-strip ${stripClass(sc)}"></div>
-    <div class="card-head">
-      <div class="score-badge ${scoreClass(sc)}">
-        ${sc}${sc>=9?'<span class="flame">🔥</span>':''}
-      </div>
-      <div class="card-title">
-        <div class="card-empresa">${l.empresa}</div>
-        ${l.fantasia&&l.fantasia!==l.empresa?`<div class="card-fantasia">${l.fantasia}</div>`:''}
-        <div class="card-meta">
-          <span class="pill ${l.porte==='DEMAIS'?'demais':'epp'}">${l.porte}</span>
-          <span class="pill ${(l.regime||'').includes('Real')?'real':'pres'}">${(l.regime||'').replace('Lucro ','')}</span>
-          ${l.nicho?`<span class="pill">${l.nicho}</span>`:''}
-          ${l.cidade?`<span class="pill">📍 ${l.cidade}</span>`:''}
-        </div>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="info-row">
-        <div class="info-icon">🏢</div>
-        <div class="info-content">
-          <div class="info-label">Empresa</div>
-          <div class="info-val">${l.empresa_anos?l.empresa_anos+' anos de mercado':''}${l.capital?' · Capital: <strong style="color:var(--gold)">'+fmtValor(l.capital)+'</strong>':''}</div>
-          ${l.site?`<div class="info-val small">🌐 <a href="https://${l.site}" target="_blank">${l.site}</a></div>`:''}
-        </div>
-      </div>
-      ${l.decisor?`
-      <div class="info-row">
-        <div class="info-icon">👤</div>
-        <div class="info-content">
-          <div class="info-label">Decisor</div>
-          <div class="info-val">${l.decisor}${l.decisor_cargo?' <span style="color:var(--muted);font-size:11px">('+l.decisor_cargo+')</span>':''}</div>
-          ${l.qtd_socios>1?`<div class="socios-wrap"><strong>${l.qtd_socios} sócios:</strong> ${l.socios_lista}</div>`:''}
-        </div>
-      </div>`:''}
-      ${(l.telefone||l.email)?`
-      <div class="info-row">
-        <div class="info-icon">📞</div>
-        <div class="info-content">
-          <div class="info-label">Contato</div>
-          ${(l.telefones?l.telefones.split('|'):l.telefone?[l.telefone]:[]).map(t=>`<div class="info-val">📱 ${t.trim()}</div>`).join('')}
-          ${(l.emails_todos?l.emails_todos.split('|'):l.email?[l.email]:[]).map(e=>`<div class="info-val small">✉️ ${e.trim()}</div>`).join('')}
-        </div>
-      </div>`:''}
-      ${l.divida_ativa?`
-      <div class="divida-block">
-        <div class="divida-ico">⚠️</div>
-        <div>
-          <div class="divida-val">${fmtValor(l.divida_valor)||'Dívida Ativa confirmada'}</div>
-          <div class="divida-sub">Dívida Ativa Federal — oportunidade de transação tributária</div>
-        </div>
-      </div>`:''}
-      <div class="presence-row">
-        <div class="pres-chip ${l.google_presente?'ok':'no'}">
-          <span class="pico">🔍</span>
-          ${l.google_presente?`Google: ${l.google_resultados} result.`:'Sem presença Google'}
-        </div>
-        <div class="pres-chip ${linkedinHref?'ok':'no'}">
-          <span class="pico">💼</span>
-          ${linkedinHref?`<a href="${linkedinHref}" target="_blank" style="color:inherit">LinkedIn ✓</a>`:'Sem LinkedIn'}
-        </div>
-      </div>
-      ${l.abordagem?`
-      <div class="abordagem-block" onclick="this.classList.toggle('expanded');navigator.clipboard&&navigator.clipboard.writeText(this.dataset.txt);" data-txt="${l.abordagem.replace(/"/g,'&quot;').replace(/'/g,'&#39;')}">
-        <div class="abr-label">💬 Abordagem sugerida — clique para copiar</div>
-        <div class="abr-preview">${l.abordagem.substring(0,100)}${l.abordagem.length>100?'...':''}</div>
-        <div class="abr-more">${l.abordagem}</div>
-      </div>`:''}
-    </div>
-    <div class="card-foot">
-      <div class="foot-info">📊 Score <span style="color:var(--gold)">${sc}/10</span>${l.score_ia?' ✨':' 🔢'}</div>
-      <button class="btn-analisar" onclick="analisarLead('${l.cnpj}',this)" title="Enriquecer com dívida ativa + score IA">⭐ Analisar IA</button>
-      <button class="btn-usado ${l.status==='usado'?'marcado':''}" onclick="marcarUsado('${l.cnpj}',this)">
-        ${l.status==='usado'?'✓ Usado':'☑ Marcar usado'}
-      </button>
-      ${wa?`<a class="btn-wa" href="${wa}" target="_blank">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Abordar
-      </a>`:''}
-    </div>
-  </div>`;
-}
-
-// ====== MARCAR USADO ======
-async function marcarUsado(cnpj, btn) {
-  btn.disabled = true;
-  const lead = ALL_LEADS.find(l=>l.cnpj===cnpj);
-  if(lead) lead.status = 'usado';
-  btn.closest('.lead-card').classList.add('usado');
-  btn.classList.add('marcado');
-  btn.textContent = '✓ Usado';
-  try {
-    await fetch(WEBHOOK_MARCAR_URL, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({cnpj, status:'usado'})
-    });
-  } catch(e){}
-}
-
-// ====== ANALISAR COM IA ======
-async function analisarLead(cnpj, btn) {
-  const lead = ALL_LEADS.find(l=>l.cnpj===cnpj);
-  if(!lead) return;
-  btn.disabled = true;
-  btn.textContent = '⏳ Analisando...';
-  try {
-    await fetch(WEBHOOK_ENRIQUECER_URL, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(lead)
-    });
-    btn.textContent = '✅ Score IA enviado!';
-    btn.style.background = 'var(--green)';
-    setTimeout(()=>{ btn.textContent='⭐ Analisar IA'; btn.disabled=false; btn.style.background=''; }, 5000);
-  } catch(e){
-    btn.textContent = '⚠️ Erro'; btn.disabled=false;
-  }
-}
-
-// ====== EXTRAIR PARA BASE (brasil.io) ======
-$('#btnExtrair').addEventListener('click', async () => {
-  const btn = $('#btnExtrair'), status = $('#buscaStatus');
-  const params = {
-    uf:        $('#bUF').value,
-    municipio: $('#bMunicipio').value.trim(),
-    porte:     $('#bPorte').value,
-    limite:    parseInt($('#bLimite').value)||500
-  };
-  btn.disabled=true; btn.innerHTML='⏳ Carregando...';
-  status.style.color='var(--muted)';
-  status.textContent=`Buscando empresas de ${params.uf} via brasil.io (gratuito)...`;
-  try {
-    const res = await fetch(WEBHOOK_EXTRAIR_URL, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(params)
-    });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    status.textContent='⏳ Processando... aguarde 1-2 minutos e clique em Buscar para ver os novos dados.';
-    setTimeout(async ()=>{
-      await carregarBase();
-      status.style.color='var(--green)';
-      status.textContent=`✅ Base recarregada — ${ALL_LEADS.length} empresas disponíveis.`;
-    }, 90000);
-  } catch(e){
-    status.style.color='var(--amber)';
-    status.textContent='⚠️ Erro ao chamar o webhook. Verifique se o workflow "Extrator Brasil.io" está ativo no n8n.';
-  } finally {
-    btn.disabled=false; btn.innerHTML='📥 Carregar Base Grátis';
-  }
-});
-
-// ====== ENRIQUECER LOTE (CNPJá individual) ======
-$('#btnEnriquecerLote').addEventListener('click', async () => {
-  const btn = $('#btnEnriquecerLote'), status = $('#enrichStatus');
-  const produto = $('#eProduto').value;
-  const quantidade = parseInt($('#eQtd').value)||10;
-  if(!confirm(`Isso vai consumir ${quantidade} crédito(s) CNPJá para enriquecer as top ${quantidade} empresas de "${$('#eProduto').options[$('#eProduto').selectedIndex].text}". Confirmar?`)) return;
-  btn.disabled=true; btn.innerHTML='⏳ Enriquecendo...';
-  status.style.color='var(--muted)';
-  status.textContent=`Enriquecendo top ${quantidade} leads de ${$('#eProduto').options[$('#eProduto').selectedIndex].text}...`;
-  try {
-    const res = await fetch(WEBHOOK_ENRICH_LOTE_URL, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ produto, quantidade })
-    });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    status.style.color='var(--green)';
-    status.textContent=`✅ Enriquecimento iniciado! Os leads aparecem na aba Leads da planilha em ~${quantidade * 3} segundos.`;
-  } catch(e){
-    status.style.color='var(--amber)';
-    status.textContent='⚠️ Erro ao chamar o webhook. Verifique se o workflow "Enriquecedor em Lote" está ativo no n8n.';
-  } finally {
-    btn.disabled=false; btn.innerHTML='🚀 Enriquecer Top Leads';
-  }
-});
-
-// ====== LEADS QUALIFICADOS — 3 ABAS ======
-const SHEETS_LEADS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Leads?key=${API_KEY}`;
-let ALL_LEADS_QUAL = { recuperacao: [], holding: [], reforma: [] };
-let TAB_ATIVA = 'recuperacao';
-
-async function carregarLeadsQualificados() {
-  const status = $('#leadsQualStatus');
-  status.textContent = '⏳ Carregando...';
-  status.style.color = 'var(--muted)';
-  try {
-    const res = await fetch(SHEETS_LEADS_URL, {mode:'cors'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    const rows = data.values || [];
-    if(rows.length < 2){
-      ALL_LEADS_QUAL = { recuperacao: [], holding: [], reforma: [] };
-      status.textContent = 'Nenhum lead enriquecido ainda — use o Passo 2 abaixo';
-      renderizarTodasAbas();
-      return;
-    }
-    const headers = rows[0].map(h=>h.trim().toLowerCase()
-      .replace(/\s+/g,'_').replace(/[áàã]/g,'a').replace(/[éê]/g,'e')
-      .replace(/[íî]/g,'i').replace(/[óôõ]/g,'o').replace(/[úû]/g,'u').replace(/ç/g,'c'));
-    const bools = v => ['true','TRUE','1','sim','SIM','Sim'].includes(v);
-    const leads = rows.slice(1).map(row => {
-      const o = {};
-      headers.forEach((h,i) => { o[h] = row[i]||''; });
-      const l = {
-        empresa:       toTitleCase(o.empresa||''),
-        fantasia:      toTitleCase(o.fantasia||o.empresa||''),
-        cnpj:          o.cnpj||'',
-        nicho:         o.nicho||'',
-        regime:        o.regime||'',
-        porte:         o.porte||'',
-        cidade:        o.cidade||'',
-        uf:            o.uf||o.estado||'',
-        empresa_anos:  parseInt(o.empresa_anos)||0,
-        capital:       parseFloat((o.capital||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
-        telefone:      o.telefone||'',
-        telefones:     o.telefones||'',
-        email:         o.email||'',
-        emails_todos:  o.emails_todos||'',
-        decisor:       toTitleCase(o.decisor||''),
-        decisor_cargo: o.decisor_cargo||'',
-        socios_lista:  o.socios_lista||'',
-        qtd_socios:    parseInt(o.qtd_socios)||0,
-        site:          o.site||'',
-        divida_ativa:  bools(o.divida_ativa),
-        divida_valor:  parseFloat((o.divida_valor||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
-        linkedin_url:  o.linkedin_url||o.linkedin||'',
-        abordagem:     o.abordagem||o.texto_abordagem||'',
-        score_final:   parseFloat(o.score_final||o.score)||0,
-        produto:       (o.produto||'recuperacao').toLowerCase(),
-        status:        o.status||'disponivel',
-        data_captura:  o.data_extracao||o.data_captura||''
-      };
-      if(!l.uf && l.cidade){
-        const parts = l.cidade.split('/');
-        if(parts.length>=2){ const sig=parts.map(p=>p.trim()).find(p=>/^[A-Z]{2}$/i.test(p)); if(sig) l.uf=sig.toUpperCase(); }
-      }
-      // recalcula score se não vier da planilha
-      if(!l.score_final) l.score_final = PRODUTOS[l.produto]?.score(l) || 0;
-      return l;
-    }).filter(l=>l.empresa);
-
-    ALL_LEADS_QUAL.recuperacao = leads.filter(l=>l.produto==='recuperacao').sort((a,b)=>b.score_final-a.score_final);
-    ALL_LEADS_QUAL.holding     = leads.filter(l=>l.produto==='holding').sort((a,b)=>b.score_final-a.score_final);
-    ALL_LEADS_QUAL.reforma     = leads.filter(l=>l.produto==='reforma').sort((a,b)=>b.score_final-a.score_final);
-
-    const total = leads.length;
-    status.textContent = `✅ ${total} lead${total!==1?'s':''} enriquecido${total!==1?'s':''}`;
-    status.style.color = 'var(--green)';
-    renderizarTodasAbas();
-  } catch(e) {
-    status.textContent = '⚠️ Erro ao carregar aba Leads';
-    status.style.color = 'var(--amber)';
-  }
-}
-
-function renderizarTodasAbas() {
-  ['recuperacao','holding','reforma'].forEach(p => {
-    const leads = ALL_LEADS_QUAL[p];
-    document.getElementById('tCount-'+p).textContent = leads.length || '0';
-    const el = document.getElementById('tab-'+p);
-    if(!leads.length){
-      el.innerHTML = `<div class="tab-empty">
-        <div style="font-size:36px;margin-bottom:12px">🎯</div>
-        <strong>Nenhum lead enriquecido para ${PRODUTOS[p].label}</strong><br>
-        <div style="font-size:13px;margin-top:8px">Use o <strong>Passo 2</strong> abaixo — selecione "${PRODUTOS[p].label.replace(/[^ ]+ /,'')}" e clique em Enriquecer Top Leads.</div>
-      </div>`;
+  $('#filterCount').textContent = lista.length ? `${lista.length} lead${lista.length!==1?'s':''}` : '';
+  const grid = $('#cardsGrid');
+  const empty = $('#emptyState');
+  if(!lista.length){
+    grid.innerHTML='';
+    empty.style.display='block';
+    const total=LEADS[TAB].length;
+    if(!total){
+      $('#emptyTitle').textContent='Nenhum lead enriquecido ainda';
+      $('#emptyMsg').innerHTML='Use ⚙️ Admin → Passo 2 para enriquecer os primeiros leads deste produto.';
     } else {
-      el.innerHTML = `<div class="cards-grid">${leads.map(l=>buildCardQual(l,p)).join('')}</div>`;
+      $('#emptyTitle').textContent='Nenhum lead com esses filtros';
+      $('#emptyMsg').innerHTML=`${total} lead${total!==1?'s':''} disponível${total!==1?'is':''} — tente ampliar os filtros.`;
     }
-  });
-}
-
-function buildCardQual(l, produto) {
-  const sc = l.score_final;
-  const wa = l.telefone
-    ? `https://wa.me/55${l.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(l.abordagem||'Olá!')}`
-    : '';
-  const linkedinHref = l.linkedin_url ? (l.linkedin_url.startsWith('http')?l.linkedin_url:'https://'+l.linkedin_url) : '';
-  const prodLabel = { recuperacao:'💰 Recuperação', holding:'🏛 Holding', reforma:'📋 Reforma' };
-  return `
-  <div class="lead-card ${sc>=9?'very-hot':''}">
-    <div class="card-strip ${stripClass(sc)}"></div>
-    <div class="card-head">
-      <div class="score-badge ${scoreClass(sc)}">
-        ${sc}${sc>=9?'<span class="flame">🔥</span>':''}
-      </div>
-      <div class="card-title">
-        <div class="card-empresa">${l.empresa}</div>
-        ${l.fantasia&&l.fantasia!==l.empresa?`<div class="card-fantasia">${l.fantasia}</div>`:''}
-        <div class="card-meta">
-          <span class="pill" style="background:var(--gold-dim);color:var(--gold);border-color:var(--gold-brd)">${prodLabel[produto]}</span>
-          ${l.porte?`<span class="pill ${l.porte==='DEMAIS'?'demais':'epp'}">${l.porte}</span>`:''}
-          ${l.regime?`<span class="pill ${(l.regime||'').includes('Real')?'real':'pres'}">${(l.regime||'').replace('Lucro ','')}</span>`:''}
-          ${l.cidade?`<span class="pill">📍 ${l.cidade}</span>`:''}
-        </div>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="info-row">
-        <div class="info-icon">🏢</div>
-        <div class="info-content">
-          <div class="info-label">Empresa</div>
-          <div class="info-val">${l.empresa_anos?l.empresa_anos+' anos de mercado':''}${l.capital?' · Capital: <strong style="color:var(--gold)">'+fmtValor(l.capital)+'</strong>':''}</div>
-          ${l.site?`<div class="info-val small">🌐 <a href="https://${l.site}" target="_blank">${l.site}</a></div>`:''}
-        </div>
-      </div>
-      ${l.decisor?`
-      <div class="info-row">
-        <div class="info-icon">👤</div>
-        <div class="info-content">
-          <div class="info-label">Decisor Confirmado</div>
-          <div class="info-val" style="color:var(--gold);font-weight:700">${l.decisor}${l.decisor_cargo?' <span style="color:var(--muted);font-size:11px;font-weight:400">('+l.decisor_cargo+')</span>':''}</div>
-          ${l.qtd_socios>1?`<div class="socios-wrap"><strong>${l.qtd_socios} sócios:</strong> ${l.socios_lista}</div>`:''}
-        </div>
-      </div>`:''}
-      ${(l.telefone||l.email)?`
-      <div class="info-row">
-        <div class="info-icon">📞</div>
-        <div class="info-content">
-          <div class="info-label">Contato Verificado</div>
-          ${(l.telefones?l.telefones.split('|'):l.telefone?[l.telefone]:[]).map(t=>`<div class="info-val">📱 ${t.trim()}</div>`).join('')}
-          ${(l.emails_todos?l.emails_todos.split('|'):l.email?[l.email]:[]).map(e=>`<div class="info-val small">✉️ ${e.trim()}</div>`).join('')}
-        </div>
-      </div>`:''}
-      ${linkedinHref?`
-      <div class="info-row">
-        <div class="info-icon">💼</div>
-        <div class="info-content">
-          <div class="info-label">LinkedIn</div>
-          <div class="info-val"><a href="${linkedinHref}" target="_blank" style="color:var(--gold)">Ver perfil →</a></div>
-        </div>
-      </div>`:''}
-      ${l.divida_ativa?`
-      <div class="divida-block">
-        <div class="divida-ico">⚠️</div>
-        <div>
-          <div class="divida-val">${fmtValor(l.divida_valor)||'Dívida Ativa confirmada'}</div>
-          <div class="divida-sub">Dívida Ativa Federal — oportunidade confirmada</div>
-        </div>
-      </div>`:''}
-      ${l.abordagem?`
-      <div class="abordagem-block" onclick="this.classList.toggle('expanded');navigator.clipboard&&navigator.clipboard.writeText(this.dataset.txt);" data-txt="${l.abordagem.replace(/"/g,'&quot;').replace(/'/g,'&#39;')}">
-        <div class="abr-label">💬 Abordagem personalizada — clique para copiar</div>
-        <div class="abr-preview">${l.abordagem.substring(0,120)}${l.abordagem.length>120?'...':''}</div>
-        <div class="abr-more">${l.abordagem}</div>
-      </div>`:''}
-    </div>
-    <div class="card-foot">
-      <div class="foot-info">📊 Score <span style="color:var(--gold)">${sc}/10</span> ✨ enriquecido</div>
-      ${l.data_captura?`<div class="foot-info">📅 <span>${l.data_captura}</span></div>`:''}
-      ${wa?`<a class="btn-wa" href="${wa}" target="_blank">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Abordar via WhatsApp
-      </a>`:''}
-    </div>
-  </div>`;
-}
-
-function mostrarTab(p) {
-  TAB_ATIVA = p;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tabBtn-'+p).classList.add('active');
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.getElementById('tab-'+p).classList.add('active');
-}
-
-// ====== VER TUDO NO BANCO ======
-$('#btnVerTudo').addEventListener('click', () => {
-  if(!LOADED){ alert('Aguarde o banco carregar.'); return; }
-  $('#fUF').value = ''; $('#fCidade').value = ''; $('#fNicho').value = '';
-  $('#fRegime').value = ''; $('#fPorte').value = ''; $('#fDivida').value = '';
-  $('#fScore').value = ''; $('#fStatus').value = 'todos'; $('#busca').value = '';
-  // mostra TUDO (sem limite de quantidade)
-  const total = ALL_LEADS.length;
-  const opt = [...$('#fQtd').options].find(o => parseInt(o.value) >= total);
-  if(opt) $('#fQtd').value = opt.value;
-  else {
-    const o = document.createElement('option');
-    o.value = total; o.textContent = `${total} (todos)`;
-    $('#fQtd').appendChild(o);
-    $('#fQtd').value = total;
+  } else {
+    empty.style.display='none';
+    grid.innerHTML=lista.map(buildCard).join('');
   }
-  buscarLeads();
+}
+
+// ── Trocar aba ──
+function setTab(p){
+  TAB=p;
+  document.querySelectorAll('.prod-tab').forEach(b=>b.classList.remove('active'));
+  $('#ptab-'+p).classList.add('active');
+  filtrar();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Build Card ──
+function buildCard(l){
+  const sc=l.score_final;
+  const wa=l.telefone
+    ?`https://wa.me/55${l.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(l.abordagem||'Olá '+l.decisor.split(' ')[0]+'!')}`:'';
+  const li=l.linkedin_url?(l.linkedin_url.startsWith('http')?l.linkedin_url:'https://'+l.linkedin_url):'';
+  const phones=(l.telefones?l.telefones.split('|'):l.telefone?[l.telefone]:[]).map(t=>t.trim()).filter(Boolean);
+  const emails=(l.emails_todos?l.emails_todos.split('|'):l.email?[l.email]:[]).map(e=>e.trim()).filter(Boolean);
+  return `
+<div class="lead-card ${sc>=9?'top':''} ${l.status==='usado'?'usado':''}">
+  <div class="card-strip ${sc_strip(sc)}"></div>
+  <div class="card-head">
+    <div class="score-badge ${sc_class(sc)}">${sc}${sc>=9?'<span class="flame">🔥</span>':''}</div>
+    <div class="card-info">
+      <div class="card-empresa">${l.empresa}</div>
+      <div class="card-meta">
+        ${l.porte==='DEMAIS'?'<span class="pill gold">DEMAIS</span>':l.porte?`<span class="pill">${l.porte}</span>`:''}
+        ${(l.regime||'').includes('Real')?'<span class="pill green">Lucro Real</span>':(l.regime||'').includes('Presumido')?'<span class="pill blue">Presumido</span>':''}
+        ${l.divida_ativa?'<span class="pill red">⚠️ Dívida Ativa</span>':''}
+        ${l.cidade?`<span class="pill">📍 ${l.cidade}</span>`:''}
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="info-row">
+      <div class="info-ico">🏢</div>
+      <div class="info-inner">
+        <div class="info-lbl">Empresa</div>
+        <div class="info-val">${[l.empresa_anos?l.empresa_anos+' anos':null, l.nicho||null].filter(Boolean).join(' · ')}</div>
+        ${l.capital?`<div class="info-val sm">Capital: <strong style="color:var(--gold)">${fmtV(l.capital)}</strong></div>`:''}
+        ${l.site?`<div class="info-val sm">🌐 <a href="https://${l.site}" target="_blank">${l.site}</a></div>`:''}
+      </div>
+    </div>
+
+    ${l.decisor||phones.length||emails.length?`
+    <div class="decisor-box">
+      ${l.decisor?`<div class="decisor-nome">👤 ${l.decisor}</div>
+      <div class="decisor-cargo">${l.decisor_cargo||'Sócio'}${l.qtd_socios>1?' · '+l.qtd_socios+' sócios no total':''}</div>`:''}
+      ${phones.length||emails.length?`
+      <div class="decisor-contato">
+        ${phones.map(t=>`<span>📱 ${t}</span>`).join('')}
+        ${emails.map(e=>`<span>✉️ ${e}</span>`).join('')}
+        ${li?`<span>💼 <a href="${li}" target="_blank" style="color:var(--gold)">LinkedIn →</a></span>`:''}
+      </div>`:''}
+    </div>`:''}
+
+    ${l.divida_ativa?`
+    <div class="divida-box">
+      <div>
+        <div class="divida-val">${fmtVS(l.divida_valor)||'Dívida confirmada'}</div>
+        <div class="divida-sub">Dívida Ativa Federal — oportunidade de transação</div>
+      </div>
+    </div>`:''}
+
+    ${l.abordagem?`
+    <div class="abr-box" onclick="this.classList.toggle('open');navigator.clipboard&&navigator.clipboard.writeText(this.dataset.t)" data-t="${l.abordagem.replace(/"/g,'&quot;').replace(/'/g,'&#39;')}">
+      <div class="abr-lbl">💬 Abordagem — clique para copiar</div>
+      <div class="abr-prev">${l.abordagem.substring(0,110)}${l.abordagem.length>110?'…':''}</div>
+      <div class="abr-full">${l.abordagem}</div>
+      <span class="copy-tip">📋 copiar</span>
+    </div>`:''}
+  </div>
+  <div class="card-foot">
+    <div class="foot-txt">Score <span>${sc}/10</span>${l.score_final&&l.data_captura?' · '+l.data_captura:''}</div>
+    <button class="btn-usado ${l.status==='usado'?'ok':''}" onclick="marcar('${l.cnpj}',this)">${l.status==='usado'?'✓ Abordado':'☑ Marcar usado'}</button>
+    ${wa?`<a class="btn-wa" href="${wa}" target="_blank">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp
+    </a>`:''}
+  </div>
+</div>`;
+}
+
+// ── Marcar usado ──
+async function marcar(cnpj, btn){
+  btn.disabled=true;
+  const l=[...LEADS.recuperacao,...LEADS.holding,...LEADS.reforma].find(x=>x.cnpj===cnpj);
+  if(l) l.status='usado';
+  btn.closest('.lead-card').classList.add('usado');
+  btn.classList.add('ok'); btn.textContent='✓ Abordado';
+  try{ await fetch(WH_MARCAR,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cnpj,status:'usado'})}); }catch(e){}
+}
+
+// ── Admin toggle ──
+function toggleAdmin(){
+  const p=$('#adminPanel');
+  const ico=$('#adminToggleIco');
+  p.classList.toggle('open');
+  ico.textContent=p.classList.contains('open')?'▲':'▼';
+}
+
+// ── Passo 1: Extrair ──
+$('#btnExtrair').addEventListener('click', async()=>{
+  const btn=$('#btnExtrair'), st=$('#buscaStatus');
+  btn.disabled=true; btn.textContent='⏳ Carregando...';
+  st.style.color='var(--muted)';
+  st.textContent=`Buscando empresas via brasil.io...`;
+  try{
+    const res=await fetch(WH_EXTRAIR,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({uf:$('#bUF').value,municipio:$('#bMunicipio').value.trim(),porte:$('#bPorte').value,limite:parseInt($('#bLimite').value)||500})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    st.textContent='⏳ Processando... aguarde 2 minutos.';
+    setTimeout(()=>{ st.style.color='var(--green)'; st.textContent='✅ Base atualizada — use o Passo 2 para enriquecer.'; },120000);
+  }catch(e){
+    st.style.color='var(--amber)'; st.textContent='⚠️ Erro no webhook. Verifique o n8n.';
+  }finally{ btn.disabled=false; btn.textContent='📥 Carregar Base Grátis'; }
 });
 
-// ====== INIT ======
-document.getElementById('updated') && (document.getElementById('updated').textContent = 'Atualizado: '+new Date().toLocaleDateString('pt-BR'));
-$('#btnBuscarLeads').addEventListener('click', buscarLeads);
-$('#busca').addEventListener('keydown', e=>{ if(e.key==='Enter') buscarLeads(); });
-setProduto('recuperacao');
-carregarBase();
-carregarLeadsQualificados();
+// ── Passo 2: Enriquecer ──
+$('#btnEnriquecer').addEventListener('click', async()=>{
+  const btn=$('#btnEnriquecer'), st=$('#enrichStatus');
+  const produto=$('#eProduto').value;
+  const qtd=parseInt($('#eQtd').value)||10;
+  const label=$('#eProduto').options[$('#eProduto').selectedIndex].text;
+  if(!confirm(`Consumir ${qtd} crédito(s) CNPJá para enriquecer top ${qtd} leads de "${label}"?`)) return;
+  btn.disabled=true; btn.textContent='⏳ Enriquecendo...';
+  st.style.color='var(--muted)'; st.textContent=`Enriquecendo ${qtd} leads para ${label}...`;
+  try{
+    const res=await fetch(WH_ENRICH,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({produto,quantidade:qtd})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    st.style.color='var(--green)';
+    st.textContent=`✅ Iniciado! Leads aparecem na aba em ~${qtd*3}s. Clique em ↻ para atualizar.`;
+    setTimeout(()=>carregarLeads(), (qtd*3+10)*1000);
+  }catch(e){
+    st.style.color='var(--amber)'; st.textContent='⚠️ Erro no webhook. Verifique o n8n.';
+  }finally{ btn.disabled=false; btn.textContent='🚀 Enriquecer Top Leads'; }
+});
+
+// ── Init ──
+carregarLeads();
 </script>
 </body>
 </html>
