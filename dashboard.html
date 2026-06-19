@@ -321,9 +321,10 @@ const WH_MARCAR   = 'https://rodrigopires.app.n8n.cloud/webhook/marcar-lead';
 const $ = s => document.querySelector(s);
 
 // ── State ──
-let LEADS = { recuperacao:[], holding:[], reforma:[] };
-let TAB   = 'recuperacao';
-let NICHOS_MAP = {};
+let LEADS         = { recuperacao:[], holding:[], reforma:[] }; // enriquecidos (Leads sheet)
+let BASE_EMPRESAS = []; // banco completo (base_empresas sheet)
+let TAB           = 'recuperacao';
+let BASE_LOADED   = false;
 
 // ── Helpers ──
 const tt  = s => s?(s+'').toLowerCase().replace(/(?:^|\s|-)\S/g,c=>c.toUpperCase()):'';
@@ -379,8 +380,8 @@ const PRODUTOS = {
   }
 };
 
-// ── Parse Leads sheet ──
-function parseLeads(rows){
+// ── Parse rows genérico ──
+function parseRows(rows){
   if(!rows||rows.length<2) return [];
   const h = rows[0].map(x=>x.trim().toLowerCase()
     .replace(/\s+/g,'_').replace(/[áàã]/g,'a').replace(/[éê]/g,'e')
@@ -411,47 +412,71 @@ function parseLeads(rows){
       divida_valor: parseFloat((o.divida_valor||'').replace(/[^0-9,.]/g,'').replace(',','.'))||0,
       abordagem:    o.abordagem||o.texto_abordagem||'',
       score_final:  parseFloat(o.score_final||o.score)||0,
-      produto:      (o.produto||'recuperacao').toLowerCase(),
+      produto:      (o.produto||'').toLowerCase(),
       status:       o.status||'disponivel',
-      data_captura: o.data_extracao||o.data_captura||''
+      data_captura: o.data_extracao||o.data_captura||'',
+      enriquecido:  false
     };
     if(!l.uf&&l.cidade){
       const parts=l.cidade.split('/');
       if(parts.length>=2){const sig=parts.map(p=>p.trim()).find(p=>/^[A-Z]{2}$/i.test(p));if(sig)l.uf=sig.toUpperCase();}
     }
-    if(!l.score_final) l.score_final = PRODUTOS[l.produto]?.score(l)||0;
     return l;
   }).filter(l=>l.empresa);
 }
 
-// ── Carregar Leads ──
+// ── Carregar banco completo + leads enriquecidos ──
 async function carregarLeads(){
   $('#loadingState').style.display='block';
   $('#emptyState').style.display='none';
   $('#cardsGrid').innerHTML='';
-  $('#syncStatus').textContent='⏳ Sincronizando...';
+  $('#syncStatus').textContent='⏳ Carregando banco...';
   try{
-    const res = await fetch(LEADS_URL,{mode:'cors'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    const todos = parseLeads(data.values||[]);
-    LEADS.recuperacao = todos.filter(l=>l.produto==='recuperacao').sort((a,b)=>b.score_final-a.score_final);
-    LEADS.holding     = todos.filter(l=>l.produto==='holding').sort((a,b)=>b.score_final-a.score_final);
-    LEADS.reforma     = todos.filter(l=>l.produto==='reforma').sort((a,b)=>b.score_final-a.score_final);
-    // Nichos únicos
-    const allNichos = [...new Set(todos.map(l=>l.nicho).filter(Boolean))].sort();
+    // Carrega base_empresas e Leads em paralelo
+    const [resBase, resLeads] = await Promise.all([
+      fetch(BASE_URL,{mode:'cors'}),
+      fetch(LEADS_URL,{mode:'cors'})
+    ]);
+
+    // base_empresas → banco completo
+    if(resBase.ok){
+      const data = await resBase.json();
+      BASE_EMPRESAS = parseRows(data.values||[]);
+    }
+
+    // Leads → enriquecidos (marca e sobrepõe no banco)
+    const enrMap = {};
+    if(resLeads.ok){
+      const data = await resLeads.json();
+      const enriquecidos = parseRows(data.values||[]);
+      enriquecidos.forEach(l=>{ l.enriquecido=true; enrMap[l.cnpj]=l; });
+      // Contadores de leads enriquecidos por produto
+      LEADS.recuperacao = enriquecidos.filter(l=>l.produto==='recuperacao').sort((a,b)=>b.score_final-a.score_final);
+      LEADS.holding     = enriquecidos.filter(l=>l.produto==='holding').sort((a,b)=>b.score_final-a.score_final);
+      LEADS.reforma     = enriquecidos.filter(l=>l.produto==='reforma').sort((a,b)=>b.score_final-a.score_final);
+    }
+
+    // Sobrepõe dados enriquecidos no banco (mesmo CNPJ)
+    BASE_EMPRESAS = BASE_EMPRESAS.map(l=> enrMap[l.cnpj] ? {...l,...enrMap[l.cnpj]} : l);
+
+    // Nichos do banco completo
+    const allNichos = [...new Set(BASE_EMPRESAS.map(l=>l.nicho).filter(Boolean))].sort();
     $('#fNicho').innerHTML = '<option value="">Todos os nichos</option>'+allNichos.map(n=>`<option>${n}</option>`).join('');
-    // Atualiza contadores
+
+    // Contadores nas abas (enriquecidos)
     ['recuperacao','holding','reforma'].forEach(p=>{
       const lst=LEADS[p];
       $('#pcount-'+p).textContent=lst.length||'0';
       const hot=lst.filter(l=>l.score_final>=9).length;
-      $('#phot-'+p).textContent=hot?`🔥 ${hot} muito quentes`:'';
+      $('#phot-'+p).textContent=hot?`🔥 ${hot} score 9+`:'';
     });
-    $('#syncStatus').textContent=`✅ ${todos.length} leads`;
-    $('#syncStatus').style.color='var(--green)';
+
+    const total = BASE_EMPRESAS.length;
+    $('#syncStatus').textContent = `✅ ${total.toLocaleString('pt-BR')} empresas no banco`;
+    $('#syncStatus').style.color = 'var(--green)';
+    BASE_LOADED = true;
   }catch(e){
-    $('#syncStatus').textContent='⚠️ Erro ao carregar';
+    $('#syncStatus').textContent='⚠️ Erro ao carregar banco';
     $('#syncStatus').style.color='var(--amber)';
   }finally{
     $('#loadingState').style.display='none';
@@ -459,33 +484,43 @@ async function carregarLeads(){
   }
 }
 
-// ── Filtrar ──
+// ── Filtrar no banco completo, score pelo produto da aba ativa ──
 function filtrar(){
+  if(!BASE_LOADED){ return; }
   const cidade = norm($('#fCidade').value.trim());
   const nicho  = $('#fNicho').value;
   const minSc  = parseInt($('#fScore').value)||0;
   const st     = $('#fStatus').value;
-  let lista = LEADS[TAB].filter(l=>{
+
+  // Calcula score pelo produto da aba ativa
+  let lista = BASE_EMPRESAS.map(l=>({
+    ...l,
+    score_final: PRODUTOS[TAB].score(l)
+  })).filter(l=>{
+    if(l.score_final <= 0) return false; // não qualifica para este produto
     if(cidade && !norm(l.cidade+' '+l.uf).includes(cidade)) return false;
     if(nicho  && l.nicho !== nicho) return false;
     if(minSc  && l.score_final < minSc) return false;
     if(st==='disponivel' && l.status==='usado') return false;
     if(st==='usado'      && l.status!=='usado') return false;
     return true;
-  });
-  $('#filterCount').textContent = lista.length ? `${lista.length} lead${lista.length!==1?'s':''}` : '';
+  }).sort((a,b)=>b.score_final-a.score_final);
+
+  $('#filterCount').textContent = lista.length
+    ? `${lista.length.toLocaleString('pt-BR')} lead${lista.length!==1?'s':''} encontrado${lista.length!==1?'s':''}`
+    : '';
+
   const grid = $('#cardsGrid');
   const empty = $('#emptyState');
   if(!lista.length){
     grid.innerHTML='';
     empty.style.display='block';
-    const total=LEADS[TAB].length;
-    if(!total){
-      $('#emptyTitle').textContent='Nenhum lead enriquecido ainda';
-      $('#emptyMsg').innerHTML='Use ⚙️ Admin → Passo 2 para enriquecer os primeiros leads deste produto.';
+    if(!BASE_EMPRESAS.length){
+      $('#emptyTitle').textContent='Banco vazio';
+      $('#emptyMsg').innerHTML='Use ⚙️ Admin → Passo 1 para carregar empresas no banco primeiro.';
     } else {
       $('#emptyTitle').textContent='Nenhum lead com esses filtros';
-      $('#emptyMsg').innerHTML=`${total} lead${total!==1?'s':''} disponível${total!==1?'is':''} — tente ampliar os filtros.`;
+      $('#emptyMsg').innerHTML=`${BASE_EMPRESAS.length.toLocaleString('pt-BR')} empresas no banco — tente ampliar os filtros.`;
     }
   } else {
     empty.style.display='none';
@@ -493,7 +528,7 @@ function filtrar(){
   }
 }
 
-// ── Trocar aba ──
+// ── Trocar aba — recalcula score pelo novo produto ──
 function setTab(p){
   TAB=p;
   document.querySelectorAll('.prod-tab').forEach(b=>b.classList.remove('active'));
@@ -565,7 +600,7 @@ function buildCard(l){
     </div>`:''}
   </div>
   <div class="card-foot">
-    <div class="foot-txt">Score <span>${sc}/10</span>${l.score_final&&l.data_captura?' · '+l.data_captura:''}</div>
+    <div class="foot-txt">Score <span>${sc}/10</span>${l.enriquecido?' <span style="color:var(--green)">✨ enriquecido</span>':''}</div>
     <button class="btn-usado ${l.status==='usado'?'ok':''}" onclick="marcar('${l.cnpj}',this)">${l.status==='usado'?'✓ Abordado':'☑ Marcar usado'}</button>
     ${wa?`<a class="btn-wa" href="${wa}" target="_blank">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
