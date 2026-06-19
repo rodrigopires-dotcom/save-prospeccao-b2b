@@ -321,10 +321,12 @@ const WH_MARCAR   = 'https://rodrigopires.app.n8n.cloud/webhook/marcar-lead';
 const $ = s => document.querySelector(s);
 
 // ── State ──
-let LEADS         = { recuperacao:[], holding:[], reforma:[] }; // enriquecidos (Leads sheet)
-let BASE_EMPRESAS = []; // banco completo (base_empresas sheet)
+let LEADS         = { recuperacao:[], holding:[], reforma:[] };
+let BASE_EMPRESAS = [];
+let RESULTADO_ATUAL = []; // os 20 leads em tela agora
 let TAB           = 'recuperacao';
 let BASE_LOADED   = false;
+const LIMITE_TELA = 20;
 
 // ── Helpers ──
 const tt  = s => s?(s+'').toLowerCase().replace(/(?:^|\s|-)\S/g,c=>c.toUpperCase()):'';
@@ -480,62 +482,85 @@ async function carregarLeads(){
     $('#syncStatus').style.color='var(--amber)';
   }finally{
     $('#loadingState').style.display='none';
-    filtrar();
+    // Mostra estado inicial orientando o vendedor
+    showEmpty(
+      'Selecione os filtros e clique em Buscar',
+      `${BASE_EMPRESAS.length.toLocaleString('pt-BR')} empresas no banco — escolha cidade, nicho e produto para ver os melhores leads.`
+    );
   }
 }
 
-// ── Filtrar no banco completo, score pelo produto da aba ativa ──
+// ── BUSCAR: filtra banco, pega top 20, salva em RESULTADO_ATUAL ──
 function filtrar(){
-  if(!BASE_LOADED){ return; }
+  if(!BASE_LOADED){
+    showEmpty('Carregando banco...','Aguarde um momento.');
+    return;
+  }
   const cidade = norm($('#fCidade').value.trim());
   const nicho  = $('#fNicho').value;
   const minSc  = parseInt($('#fScore').value)||0;
   const st     = $('#fStatus').value;
 
-  // Calcula score pelo produto da aba ativa
-  let lista = BASE_EMPRESAS.map(l=>({
+  RESULTADO_ATUAL = BASE_EMPRESAS.map(l=>({
     ...l,
     score_final: PRODUTOS[TAB].score(l)
   })).filter(l=>{
-    if(l.score_final <= 0) return false; // não qualifica para este produto
+    if(l.score_final <= 0) return false;
     if(cidade && !norm(l.cidade+' '+l.uf).includes(cidade)) return false;
     if(nicho  && l.nicho !== nicho) return false;
     if(minSc  && l.score_final < minSc) return false;
     if(st==='disponivel' && l.status==='usado') return false;
     if(st==='usado'      && l.status!=='usado') return false;
     return true;
-  }).sort((a,b)=>b.score_final-a.score_final);
+  }).sort((a,b)=>b.score_final-a.score_final).slice(0, LIMITE_TELA);
 
-  $('#filterCount').textContent = lista.length
-    ? `${lista.length.toLocaleString('pt-BR')} lead${lista.length!==1?'s':''} encontrado${lista.length!==1?'s':''}`
-    : '';
-
-  const grid = $('#cardsGrid');
-  const empty = $('#emptyState');
-  if(!lista.length){
-    grid.innerHTML='';
-    empty.style.display='block';
-    if(!BASE_EMPRESAS.length){
-      $('#emptyTitle').textContent='Banco vazio';
-      $('#emptyMsg').innerHTML='Use ⚙️ Admin → Passo 1 para carregar empresas no banco primeiro.';
-    } else {
-      $('#emptyTitle').textContent='Nenhum lead com esses filtros';
-      $('#emptyMsg').innerHTML=`${BASE_EMPRESAS.length.toLocaleString('pt-BR')} empresas no banco — tente ampliar os filtros.`;
-    }
-  } else {
-    empty.style.display='none';
-    grid.innerHTML=lista.map(buildCard).join('');
-  }
+  renderResultado();
 }
 
-// ── Trocar aba — recalcula score pelo novo produto ──
+// ── TROCAR ABA: re-pontua os 20 em tela, sem rebuscar ──
 function setTab(p){
-  TAB=p;
+  TAB = p;
   document.querySelectorAll('.prod-tab').forEach(b=>b.classList.remove('active'));
   $('#ptab-'+p).classList.add('active');
-  filtrar();
+
+  if(RESULTADO_ATUAL.length){
+    // Re-pontua os mesmos 20 com o novo produto
+    RESULTADO_ATUAL = RESULTADO_ATUAL.map(l=>({
+      ...l,
+      score_final: PRODUTOS[p].score(l)
+    })).sort((a,b)=>b.score_final-a.score_final);
+    renderResultado();
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
+
+// ── Renderizar os resultados em tela ──
+function renderResultado(){
+  const total = RESULTADO_ATUAL.length;
+  $('#filterCount').textContent = total
+    ? `${total} de ${LIMITE_TELA} leads`
+    : '';
+
+  if(!total){
+    showEmpty(
+      'Nenhum lead encontrado',
+      BASE_EMPRESAS.length
+        ? `${BASE_EMPRESAS.length.toLocaleString('pt-BR')} empresas no banco — ajuste os filtros e tente novamente.`
+        : 'Use ⚙️ Admin → Passo 1 para carregar empresas no banco primeiro.'
+    );
+    return;
+  }
+  $('#emptyState').style.display='none';
+  $('#cardsGrid').innerHTML = RESULTADO_ATUAL.map(buildCard).join('');
+}
+
+function showEmpty(titulo, msg){
+  $('#cardsGrid').innerHTML='';
+  $('#emptyState').style.display='block';
+  $('#emptyTitle').textContent=titulo;
+  $('#emptyMsg').innerHTML=msg;
+}
+
 
 // ── Build Card ──
 function buildCard(l){
@@ -610,13 +635,20 @@ function buildCard(l){
 </div>`;
 }
 
-// ── Marcar usado ──
+// ── Marcar usado — remove da tela e do banco local ──
 async function marcar(cnpj, btn){
   btn.disabled=true;
-  const l=[...LEADS.recuperacao,...LEADS.holding,...LEADS.reforma].find(x=>x.cnpj===cnpj);
-  if(l) l.status='usado';
-  btn.closest('.lead-card').classList.add('usado');
-  btn.classList.add('ok'); btn.textContent='✓ Abordado';
+  // Marca localmente
+  BASE_EMPRESAS.forEach(l=>{ if(l.cnpj===cnpj) l.status='usado'; });
+  RESULTADO_ATUAL = RESULTADO_ATUAL.filter(l=>l.cnpj!==cnpj);
+  // Animação de saída
+  const card=btn.closest('.lead-card');
+  card.style.transition='opacity .3s,transform .3s';
+  card.style.opacity='0'; card.style.transform='scale(.95)';
+  setTimeout(()=>{
+    card.remove();
+    $('#filterCount').textContent=RESULTADO_ATUAL.length?`${RESULTADO_ATUAL.length} de ${LIMITE_TELA} leads`:'';
+  }, 300);
   try{ await fetch(WH_MARCAR,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cnpj,status:'usado'})}); }catch(e){}
 }
 
