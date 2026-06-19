@@ -194,21 +194,22 @@ body{background:var(--bg);color:var(--txt);min-height:100vh}
 
 <!-- ── Filtro bar ── -->
 <div class="filter-bar">
-  <input class="filter-field wide" id="fCidade" placeholder="🔍 Cidade..." oninput="filtrar()">
-  <select class="filter-field sm" id="fNicho" onchange="filtrar()">
+  <input class="filter-field wide" id="fCidade" placeholder="🔍 Cidade..." onkeydown="if(event.key==='Enter')filtrar()">
+  <select class="filter-field sm" id="fNicho">
     <option value="">Todos os nichos</option>
   </select>
-  <select class="filter-field sm" id="fScore" onchange="filtrar()">
+  <select class="filter-field sm" id="fScore">
     <option value="">Qualquer score</option>
     <option value="9">🔥 Score 9+</option>
     <option value="7">✅ Score 7+</option>
     <option value="5">⏳ Score 5+</option>
   </select>
-  <select class="filter-field sm" id="fStatus" onchange="filtrar()">
+  <select class="filter-field sm" id="fStatus">
     <option value="disponivel">Disponíveis</option>
     <option value="todos">Todos</option>
     <option value="usado">Já abordados</option>
   </select>
+  <button onclick="filtrar()" style="background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:8px;padding:9px 20px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🔍 Buscar</button>
   <span class="filter-count" id="filterCount"></span>
 </div>
 
