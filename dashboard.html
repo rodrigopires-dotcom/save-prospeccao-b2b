@@ -562,6 +562,27 @@ function showEmpty(titulo, msg){
 }
 
 
+// ── Gerar abordagem por produto ──
+function gerarAbordagem(l, produto){
+  if(l.abordagem && l.produto === produto) return l.abordagem; // já tem texto enriquecido para este produto
+  const nome = l.decisor ? l.decisor.split(' ')[0] : 'tudo bem';
+  const empresa = l.empresa || 'sua empresa';
+  const anos = l.empresa_anos ? `${l.empresa_anos} anos de mercado` : '';
+  const regime = (l.regime||'').replace('Lucro ','') || 'seu regime tributário';
+  const capital = l.capital >= 1e6 ? `capital de ${fmtVS(l.capital)}` : '';
+  const socios = l.qtd_socios > 1 ? `${l.qtd_socios} sócios` : '';
+  const divida = l.divida_ativa ? ` Identificamos também uma pendência junto à Receita Federal${l.divida_valor?' de '+fmtVS(l.divida_valor):''}` : '';
+
+  if(produto === 'recuperacao'){
+    return `Olá ${nome}! Sou da SAVE Inteligência Tributária. Analisamos o perfil da ${empresa}${anos?' ('+anos+')':''} e identificamos que empresas no regime ${regime} costumam ter créditos tributários de IRPJ e CSLL não recuperados. Posso apresentar um diagnóstico gratuito do potencial de recuperação?${divida}`;
+  }
+  if(produto === 'holding'){
+    return `Olá ${nome}! Sou da SAVE Inteligência Tributária. A ${empresa}${anos?' com '+anos:''}${socios?' e '+socios:''} tem perfil ideal para uma holding familiar — proteção patrimonial, planejamento sucessório e economia tributária${capital?' sobre '+capital:''}. Posso agendar uma conversa rápida sobre isso?`;
+  }
+  // reforma
+  return `Olá ${nome}! Sou da SAVE Inteligência Tributária. A reforma tributária (IBS/CBS) vai impactar diretamente empresas como a ${empresa}. Fizemos uma análise prévia e identificamos oportunidades de adequação tributária antes da transição${anos?' para empresas com '+anos:''}. Consigo apresentar em 20 minutos?`;
+}
+
 // ── Build Card ──
 function buildCard(l){
   const sc=l.score_final;
@@ -616,13 +637,13 @@ function buildCard(l){
       </div>
     </div>`:''}
 
-    ${l.abordagem?`
-    <div class="abr-box" onclick="this.classList.toggle('open');navigator.clipboard&&navigator.clipboard.writeText(this.dataset.t)" data-t="${l.abordagem.replace(/"/g,'&quot;').replace(/'/g,'&#39;')}">
-      <div class="abr-lbl">💬 Abordagem — clique para copiar</div>
-      <div class="abr-prev">${l.abordagem.substring(0,110)}${l.abordagem.length>110?'…':''}</div>
-      <div class="abr-full">${l.abordagem}</div>
+    ${(()=>{ const txt=gerarAbordagem(l,TAB); return `
+    <div class="abr-box" onclick="this.classList.toggle('open');navigator.clipboard&&navigator.clipboard.writeText(this.dataset.t)" data-t="${txt.replace(/"/g,'&quot;').replace(/'/g,'&#39;')}">
+      <div class="abr-lbl">💬 Abordagem ${TAB==='recuperacao'?'Recuperação':TAB==='holding'?'Holding':'Reforma'} — clique para copiar</div>
+      <div class="abr-prev">${txt.substring(0,110)}${txt.length>110?'…':''}</div>
+      <div class="abr-full">${txt}</div>
       <span class="copy-tip">📋 copiar</span>
-    </div>`:''}
+    </div>`; })()}
   </div>
   <div class="card-foot">
     <div class="foot-txt">Score <span>${sc}/10</span>${l.enriquecido?' <span style="color:var(--green)">✨ enriquecido</span>':''}</div>
